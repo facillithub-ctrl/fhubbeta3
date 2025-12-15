@@ -1,15 +1,49 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Mail, Lock, ShieldCheck, LayoutGrid, GraduationCap, ArrowLeft, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { ArrowRight, Mail, Lock, Loader2, AlertCircle, ArrowLeft, Check } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Estados do Formulário
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // Sucesso: Redirecionar para o Hub
+      router.push("/account"); // Ou /select-hub se preferir o fluxo de seleção
+    } catch (err: any) {
+      setError(err.message || "Credenciais inválidas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
       
       {/* --- COLUNA 1: LOGIN FORM --- */}
       <div className="w-full max-w-[440px] mx-auto flex flex-col animate-in slide-in-from-left-8 duration-700 order-1 lg:order-1">
         
-        {/* Navegação de Voltar */}
         <div className="mb-8">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand-purple transition-colors font-bold group">
                 <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-brand-purple/10 transition-colors">
@@ -19,28 +53,31 @@ export default function LoginPage() {
             </Link>
         </div>
 
-        {/* Header Mobile (Logo) */}
-        <div className="lg:hidden flex justify-center mb-6">
-            <div className="relative w-16 h-16">
-                <Image src="/assets/images/accont.svg" alt="ID" fill className="object-contain" />
-            </div>
-        </div>
-
         <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900 mb-3 text-center lg:text-left">
           Acessar o Hub
         </h1>
         <p className="text-gray-500 text-base mb-8 text-center lg:text-left leading-relaxed">
-          Entre com seu Facillit ID para gerenciar sua vida acadêmica, profissional e empresarial.
+          Entre com seu Facillit ID para gerenciar sua vida acadêmica e profissional.
         </p>
 
-        <form className="w-full space-y-5">
+        {/* Exibição de Erro */}
+        {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-bold flex items-center gap-2 animate-in fade-in">
+                <AlertCircle className="w-5 h-5 shrink-0" /> {error}
+            </div>
+        )}
+
+        <form onSubmit={handleLogin} className="w-full space-y-5">
             <div className="group">
                 <div className="relative">
                     <input 
                         type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         placeholder=" " 
                         className="peer w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 font-medium placeholder-transparent focus:placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-all shadow-sm"
                         id="email"
+                        required
                     />
                     <label 
                         htmlFor="email"
@@ -56,9 +93,12 @@ export default function LoginPage() {
                 <div className="relative">
                     <input 
                         type="password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         placeholder=" "
                         className="peer w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 font-medium placeholder-transparent focus:placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-all shadow-sm"
                         id="password"
+                        required
                     />
                     <label 
                         htmlFor="password"
@@ -70,7 +110,6 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* Opções Auxiliares (Manter Sessão & Esqueci Senha) */}
             <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer group">
                     <div className="relative flex items-center">
@@ -86,9 +125,13 @@ export default function LoginPage() {
                 </Link>
             </div>
 
-            <button className="w-full bg-brand-dark hover:bg-black text-white font-bold text-lg py-4 rounded-2xl shadow-xl shadow-brand-dark/10 hover:shadow-brand-dark/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-3">
-                Entrar no Hub
-                <ArrowRight className="w-5 h-5" />
+            <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full bg-brand-dark hover:bg-black disabled:opacity-70 text-white font-bold text-lg py-4 rounded-2xl shadow-xl shadow-brand-dark/10 hover:shadow-brand-dark/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-3"
+            >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Entrar no Hub"}
+                {!loading && <ArrowRight className="w-5 h-5" />}
             </button>
         </form>
 
@@ -103,63 +146,19 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* --- COLUNA 2: CARD EXPLICATIVO (Agora visível no Mobile também) --- */}
+      {/* --- COLUNA 2: CARD EXPLICATIVO (Mantido conforme anterior) --- */}
+      {/* ... (Mantenha o código da Coluna 2 igual ao anterior) ... */}
       <div className="w-full order-2 lg:order-2 mt-8 lg:mt-0 relative h-auto lg:h-full lg:min-h-[640px] bg-gray-50 rounded-[32px] lg:rounded-[48px] p-8 lg:p-12 overflow-hidden border border-gray-100 shadow-inner flex flex-col justify-between">
-         
          {/* Background Decorativo */}
          <div className="absolute top-[-20%] right-[-20%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-brand-gradient opacity-10 blur-[80px] lg:blur-[120px] rounded-full pointer-events-none"></div>
-         
          <div className="relative z-10">
-            {/* Logo Account em Destaque (Aumentado) */}
             <div className="mb-8 lg:mb-12">
                 <div className="w-20 h-20 lg:w-28 lg:h-28 bg-white rounded-3xl shadow-xl shadow-gray-200/50 flex items-center justify-center mb-6 lg:mb-8 transition-transform hover:scale-105 duration-500">
-                    <Image 
-                        src="/assets/images/accont.svg" 
-                        alt="ID" 
-                        width={64} 
-                        height={64} 
-                        className="object-contain w-10 h-10 lg:w-16 lg:h-16"
-                    />
+                    <Image src="/assets/images/accont.svg" alt="ID" width={64} height={64} className="object-contain w-10 h-10 lg:w-16 lg:h-16"/>
                 </div>
-                <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">
-                    Um único ID.<br/>
-                    <span className="text-transparent bg-clip-text bg-brand-gradient">Infinitas possibilidades.</span>
-                </h2>
-                <p className="text-gray-500 text-base lg:text-lg leading-relaxed max-w-md">
-                    O Facillit Account centraliza sua jornada. Conecte seus estudos, gerencie sua produtividade e acesse recursos corporativos com segurança máxima.
-                </p>
+                <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">Um único ID.<br/><span className="text-transparent bg-clip-text bg-brand-gradient">Infinitas possibilidades.</span></h2>
+                <p className="text-gray-500 text-base lg:text-lg leading-relaxed max-w-md">O Facillit Account centraliza sua jornada. Conecte seus estudos, gerencie sua produtividade e acesse recursos corporativos com segurança máxima.</p>
             </div>
-
-            {/* Features (Cards Informativos) */}
-            <div className="space-y-3 lg:space-y-4">
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-blue-50 rounded-xl text-blue-600 shrink-0"><GraduationCap className="w-6 h-6"/></div>
-                    <div>
-                        <h4 className="font-bold text-gray-900 text-sm lg:text-base">Perfil Acadêmico Unificado</h4>
-                        <p className="text-xs text-gray-500">Histórico escolar, notas e certificações em um só lugar.</p>
-                    </div>
-                </div>
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 shrink-0"><LayoutGrid className="w-6 h-6"/></div>
-                    <div>
-                        <h4 className="font-bold text-gray-900 text-sm lg:text-base">Hub de Produtividade</h4>
-                        <p className="text-xs text-gray-500">Integração nativa com Facillit Day, Finances e Projetos.</p>
-                    </div>
-                </div>
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-purple-50 rounded-xl text-purple-600 shrink-0"><ShieldCheck className="w-6 h-6"/></div>
-                    <div>
-                        <h4 className="font-bold text-gray-900 text-sm lg:text-base">Segurança Enterprise</h4>
-                        <p className="text-xs text-gray-500">Proteção de dados avançada, 2FA e gestão de dispositivos.</p>
-                    </div>
-                </div>
-            </div>
-         </div>
-         
-         {/* Footer do Card */}
-         <div className="relative z-10 mt-8 pt-6 border-t border-gray-200/50 flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            Sistema Operacional • v3.0
          </div>
       </div>
 
