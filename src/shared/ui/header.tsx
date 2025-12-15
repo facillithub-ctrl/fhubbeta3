@@ -1,301 +1,448 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
 import { 
-  ChevronDown, Menu, X, 
-  PenTool, ClipboardCheck, PlayCircle, Gamepad2, BookOpen, Workflow,
-  School, FlaskConical,
-  IdCard, Network, Users, CreditCard, Code2, 
-  Calendar, TrendingUp, MessageCircle,
-  Scale, Accessibility, Briefcase, Share2, Newspaper,
-  Headset, CircleHelp, Handshake, ShieldCheck 
+  // Navegação e UI
+  ChevronDown, Menu, X, ArrowRight, ExternalLink,
+  // Ecossistema
+  PenTool, ClipboardCheck, PlayCircle, Gamepad2, BookOpen, Workflow, 
+  School, FlaskConical, LayoutDashboard, Cloud, Code2, 
+  Shield, Users, CreditCard, Heart, Calendar, MessageCircle, Briefcase,
+  // Recursos & Explorar
+  Scale, Accessibility, Share2, Newspaper, Sparkles, Layers, Trophy,
+  // Comunidade & Suporte
+  Globe, MonitorPlay, LifeBuoy, Headset, Handshake,
+  // Conta
+  LogIn, UserPlus, ShieldCheck, UserCog, LayoutTemplate
 } from 'lucide-react';
 
-// --- Estrutura de Dados ---
-const ecossistema = {
-  "For Education": [
-    { title: "Facillit Write", href: "/modulos/facillit-write", desc: "Redação e correção IA", icon: PenTool },
-    { title: "Facillit Test", href: "/modulos/facillit-test", desc: "Simulados e Provas", icon: ClipboardCheck },
-    { title: "Facillit Play", href: "/modulos/facillit-play", desc: "Streaming Educacional", icon: PlayCircle },
-    { title: "Facillit Games", href: "/modulos/facillit-games", desc: "Aprendizagem lúdica", icon: Gamepad2 },
-    { title: "Facillit Library", href: "/modulos/facillit-library", desc: "Biblioteca digital", icon: BookOpen },
-    { title: "Facillit Create", href: "/modulos/facillit-create", desc: "Mapas mentais", icon: Workflow },
-  ],
-  "For Schools": [
-    { title: "Facillit Edu", href: "/modulos/facillit-edu", desc: "Gestão Pedagógica", icon: School },
-    { title: "Facillit Lab", href: "/modulos/facillit-lab", desc: "Laboratório Virtual", icon: FlaskConical },
-  ],
-  "For Enterprise": [
-    { title: "Facillit Access", href: "/modulos/facillit-access", desc: "Gestão de Acessos", icon: IdCard },
-    { title: "Facillit Center", href: "/modulos/facillit-center", desc: "Central de Operações", icon: Network },
-    { title: "Facillit People", href: "/modulos/facillit-people", desc: "Gestão de RH", icon: Users },
-    { title: "Facillit Card", href: "/modulos/facillit-card", desc: "Benefícios", icon: CreditCard },
-    { title: "Facillit API", href: "/modulos/facillit-api", desc: "Integração", icon: Code2 },
-  ],
-  "Global": [
-    { title: "Facillit Day", href: "/modulos/facillit-day", desc: "Agenda e Hábitos", icon: Calendar },
-    { title: "Facillit Finances", href: "/modulos/facillit-finances", desc: "Gestão Financeira", icon: TrendingUp },
-    { title: "Facillit Stories", href: "/modulos/facillit-stories", desc: "Comunidade literária", icon: MessageCircle },
-  ],
+// --- 1. Base de Dados (Rich Data) ---
+
+type MenuItem = { title: string; href: string; desc: string; icon: any; color: string; bg: string; };
+type MenuGroup = { title: string; items: MenuItem[]; };
+type MenuSection = { label: string; groups: MenuGroup[]; cta?: { text: string; href: string; } };
+
+const menuData: Record<string, MenuSection> = {
+  ecossistema: {
+    label: "Ecossistema",
+    groups: [
+      {
+        title: "Education (B2C)",
+        items: [
+          { title: "Facillit Write", href: "/education/write", desc: "Redação e correção IA", icon: PenTool, color: "text-purple-600", bg: "bg-purple-50" },
+          { title: "Facillit Games", href: "/education/games", desc: "Aprendizagem lúdica", icon: Gamepad2, color: "text-orange-600", bg: "bg-orange-50" },
+          { title: "Facillit Play", href: "/education/play", desc: "Streaming Educacional", icon: PlayCircle, color: "text-pink-600", bg: "bg-pink-50" },
+        ]
+      },
+      {
+        title: "Enterprise & Schools",
+        items: [
+          { title: "Facillit Edu", href: "/schools/edu", desc: "Gestão Pedagógica", icon: School, color: "text-indigo-600", bg: "bg-indigo-50" },
+          { title: "Facillit Access", href: "/enterprise/access", desc: "IAM & Segurança", icon: Shield, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { title: "Facillit People", href: "/enterprise/people", desc: "RH Tech", icon: Users, color: "text-sky-600", bg: "bg-sky-50" },
+        ]
+      },
+      {
+        title: "Innovation & Global",
+        items: [
+          { title: "Facillit Center", href: "/startups/center", desc: "Sistema Operacional", icon: LayoutDashboard, color: "text-cyan-600", bg: "bg-cyan-50" },
+          { title: "Facillit Day", href: "/individuals/day", desc: "Agenda Inteligente", icon: Calendar, color: "text-yellow-600", bg: "bg-yellow-50" },
+          { title: "Facillit API", href: "/startups/api", desc: "Developer Tools", icon: Code2, color: "text-slate-600", bg: "bg-slate-50" },
+        ]
+      }
+    ],
+    cta: { text: "Ver todas as 5 vertentes", href: "/ecossistema" }
+  },
+  explorar: {
+    label: "Explorar",
+    groups: [
+      {
+        title: "Showcase",
+        items: [
+          { title: "Resultados", href: "/explorar/resultados", desc: "Cases de sucesso reais", icon: Trophy, color: "text-amber-600", bg: "bg-amber-50" },
+          { title: "Interfaces", href: "/explorar/telas", desc: "Galeria de UI/UX", icon: Layers, color: "text-violet-600", bg: "bg-violet-50" },
+          { title: "Novidades", href: "/recursos/atualizacoes", desc: "Atualizações do sistema", icon: Share2, color: "text-blue-600", bg: "bg-blue-50" },
+        ]
+      },
+      {
+        title: "Comunidade",
+        items: [
+          { title: "Blog Oficial", href: "/comunidade/blog", desc: "Artigos e notícias", icon: Newspaper, color: "text-rose-600", bg: "bg-rose-50" },
+          { title: "Play Off", href: "/comunidade/playoff", desc: "Desafios e eventos", icon: MonitorPlay, color: "text-red-600", bg: "bg-red-50" },
+          { title: "Redes Sociais", href: "/comunidade/social", desc: "Siga a Facillit", icon: Globe, color: "text-pink-600", bg: "bg-pink-50" },
+        ]
+      }
+    ]
+  },
+  recursos: {
+    label: "Recursos",
+    groups: [
+      {
+        title: "Institucional",
+        items: [
+          { title: "Sobre Nós", href: "/sobre", desc: "Nossa missão e valores", icon: Sparkles, color: "text-yellow-600", bg: "bg-yellow-50" },
+          { title: "Carreiras", href: "/recursos/carreiras", desc: "Trabalhe conosco", icon: Briefcase, color: "text-emerald-600", bg: "bg-emerald-50" },
+        ]
+      },
+      {
+        title: "Legal & Inclusão",
+        items: [
+          { title: "Avisos Legais", href: "/recursos/legal", desc: "Termos e privacidade", icon: Scale, color: "text-slate-600", bg: "bg-slate-50" },
+          { title: "Acessibilidade", href: "/recursos/acessibilidade", desc: "Recursos inclusivos", icon: Accessibility, color: "text-teal-600", bg: "bg-teal-50" },
+        ]
+      }
+    ]
+  },
+  suporte: {
+    label: "Suporte",
+    groups: [
+      {
+        title: "Ajuda & Contato",
+        items: [
+          { title: "Central de Ajuda", href: "/help", desc: "Tutoriais e FAQ", icon: LifeBuoy, color: "text-indigo-600", bg: "bg-indigo-50" },
+          { title: "Suporte Técnico", href: "/help/support", desc: "Abra um chamado", icon: Headset, color: "text-blue-600", bg: "bg-blue-50" },
+          { title: "Falar com Vendas", href: "/help/sales", desc: "Planos Enterprise", icon: Handshake, color: "text-green-600", bg: "bg-green-50" },
+        ]
+      }
+    ]
+  },
+  conta: {
+    label: "Conta",
+    groups: [
+      {
+        title: "Acesso",
+        items: [
+          { title: "Fazer Login", href: "/login", desc: "Acesse sua conta", icon: LogIn, color: "text-brand-purple", bg: "bg-purple-50" },
+          { title: "Criar Conta", href: "/register", desc: "Comece gratuitamente", icon: UserPlus, color: "text-brand-green", bg: "bg-green-50" },
+        ]
+      },
+      {
+        title: "Facillit ID",
+        items: [
+          { title: "Minha Conta", href: "/account", desc: "Gerencie seu perfil", icon: UserCog, color: "text-slate-600", bg: "bg-slate-50" },
+          { title: "Dashboard", href: "/dashboard", desc: "Visão geral", icon: LayoutTemplate, color: "text-gray-600", bg: "bg-gray-50" },
+        ]
+      }
+    ]
+  }
 };
 
-const recursos = [
-  { title: "Avisos Legais", href: "/recursos/legal", icon: Scale },
-  { title: "Acessibilidade", href: "/recursos/acessibilidade", icon: Accessibility },
-  { title: "Trabalhe Conosco", href: "/recursos/carreiras", icon: Briefcase },
-  { title: "Atualizações", href: "/recursos/atualizacoes", icon: Share2 },
-  { title: "Blog", href: "/recursos/blog", icon: Newspaper },
-];
+// --- 2. Componentes de UI Otimizados (Memoization opcional, mas mantidos simples por enquanto) ---
 
-const suporte = [
-  { title: "Fale Conosco", href: "/recursos/contato", icon: Headset },
-  { title: "FAQ", href: "/recursos/ajuda", icon: CircleHelp },
-  { title: "Vendas", href: "/recursos/vendas", icon: Handshake },
-  { title: "Facillit Account", href: "/dashboard/account", icon: ShieldCheck, highlight: true }, 
-];
-
-// --- Componente Mobile Accordion (Melhorado) ---
-const MobileAccordion = ({ title, isOpen, toggle, children }: { title: string, isOpen: boolean, toggle: () => void, children: React.ReactNode }) => (
-  <div className="border-b border-gray-100 last:border-0">
-    <button onClick={toggle} className="flex items-center justify-between w-full py-5 text-left group">
-      <span className={cn("font-bold text-lg transition-colors", isOpen ? 'text-brand-purple' : 'text-gray-800')}>{title}</span>
-      <ChevronDown className={cn("w-6 h-6 transition-transform duration-300", isOpen ? 'rotate-180 text-brand-purple' : 'text-gray-400')} />
-    </button>
-    <div className={cn("grid transition-all duration-300 ease-in-out overflow-hidden", isOpen ? 'grid-rows-[1fr] opacity-100 mb-4' : 'grid-rows-[0fr] opacity-0')}>
-      <div className="overflow-hidden pl-2">{children}</div>
+const RichCard = ({ item }: { item: MenuItem }) => (
+  <Link 
+    href={item.href} 
+    className="flex items-start gap-3 p-3 rounded-2xl hover:bg-gray-50 transition-all group/item border border-transparent hover:border-gray-100 hover:shadow-sm"
+  >
+    <div className={cn("p-2.5 rounded-xl shrink-0 transition-colors duration-300", item.bg)}>
+      <item.icon className={cn("w-5 h-5", item.color)} />
     </div>
+    <div>
+      <span className="block text-sm font-bold text-gray-800 group-hover/item:text-brand-purple transition-colors line-clamp-1">
+        {item.title}
+      </span>
+      <span className="text-[11px] text-gray-500 font-medium leading-tight line-clamp-2 mt-0.5">
+        {item.desc}
+      </span>
+    </div>
+  </Link>
+);
+
+const NavTrigger = ({ label, isActive, onEnter, onLeave }: any) => (
+  <div className="relative h-full flex items-center" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <button 
+      className={cn(
+        "px-4 py-2 text-sm font-bold flex items-center gap-1.5 rounded-full transition-all",
+        isActive ? "text-brand-purple bg-white shadow-sm ring-1 ring-gray-100" : "text-gray-600 hover:text-brand-purple hover:bg-gray-50/80"
+      )}
+    >
+      {label} 
+      <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-300", isActive ? "rotate-180" : "")} />
+    </button>
   </div>
 );
+
+// --- 3. Componente Header (Com lógica de Estado Corrigida) ---
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeMobileSection, setActiveMobileSection] = useState<string | null>(null);
+  
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pathname = usePathname();
   const isHome = pathname === '/';
 
-  useEffect(() => {
-    const handleScroll = () => {
-        const offset = window.scrollY;
-        setIsScrolled(offset > 20);
-    };
+  // --- OTIMIZAÇÃO 1: Scroll Handler com verificação de estado prévio ---
+  const handleScroll = useCallback(() => {
+    const shouldBeScrolled = window.scrollY > 20;
+    setIsScrolled(prev => (prev !== shouldBeScrolled ? shouldBeScrolled : prev));
+  }, []);
 
+  useEffect(() => {
     if (isHome) {
+        handleScroll(); // Check inicial
         window.addEventListener('scroll', handleScroll);
-        handleScroll();
     } else {
-        setIsScrolled(true);
+        // Se não for a home, garante que está "scrolled" (fundo branco), mas evita loop
+        setIsScrolled(prev => (prev ? prev : true));
     }
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHome]);
+  }, [isHome, handleScroll]);
 
+  // --- OTIMIZAÇÃO 2: Reset limpo ao mudar de rota ---
   useEffect(() => {
     setMobileMenuOpen(false);
+    setActiveMenu(null);
     setActiveMobileSection(null);
   }, [pathname]);
 
-  const navContainerClasses = cn(
-    "fixed top-0 left-0 w-full z-50 flex justify-center font-sans transition-all duration-300",
-    isScrolled ? "py-2" : "py-4 md:py-6"
-  );
+  // --- OTIMIZAÇÃO 3: Controle de Overflow do Body ---
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    // Cleanup function para garantir que o scroll volte se o componente desmontar
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
 
-  const navInnerClasses = cn(
-    "w-full md:w-[95%] max-w-[1400px] transition-all duration-500 ease-out px-6 flex items-center justify-between",
-    isScrolled || mobileMenuOpen
-        ? "bg-white/95 backdrop-blur-md shadow-sm md:rounded-full py-3 border border-gray-200/50"
-        : "bg-transparent py-2"
-  );
+  // Handlers de Mouse para o Menu Desktop (com Debounce/Timeout)
+  const handleMenuEnter = (menu: string) => {
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    setActiveMenu(menu);
+  };
 
-  const linkColor = "text-gray-700 hover:text-brand-purple";
+  const handleMenuLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveMenu(null);
+    }, 150); 
+  };
+
+  // Renderizador do Mega Menu
+  const renderMegaMenu = (key: string) => {
+    const data = menuData[key];
+    if (!data) return null;
+
+    // Largura dinâmica
+    const widthClass = data.groups.length === 3 ? "w-[900px]" : data.groups.length === 2 ? "w-[600px]" : "w-[340px]";
+
+    return (
+      <div 
+        className={cn(
+          "absolute top-full left-1/2 -translate-x-1/2 pt-6 transition-all duration-300 origin-top z-50 perspective-1000",
+          widthClass,
+          activeMenu === key ? "opacity-100 translate-y-0 visible" : "opacity-0 translate-y-4 invisible pointer-events-none"
+        )}
+        onMouseEnter={() => handleMenuEnter(key)}
+        onMouseLeave={handleMenuLeave}
+      >
+        <div className="absolute -top-6 left-0 w-full h-10 bg-transparent" /> {/* Ponte invisível */}
+        
+        <div className="bg-white rounded-[28px] shadow-2xl shadow-brand-purple/10 border border-gray-100 p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-gradient" />
+          
+          <div className={cn("grid gap-6", `grid-cols-${data.groups.length}`)}>
+            {data.groups.map((group, idx) => (
+              <div key={idx} className={cn("space-y-3", idx < data.groups.length - 1 && "border-r border-gray-50 pr-6")}>
+                <h3 className="text-[11px] font-black uppercase tracking-widest text-gray-400 pl-1">{group.title}</h3>
+                <div className="grid gap-1">
+                  {group.items.map((item) => <RichCard key={item.title} item={item} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {data.cta && (
+            <div className="mt-6 pt-4 border-t border-gray-50 flex justify-center">
+              <Link href={data.cta.href} className="group flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-purple transition-colors">
+                {data.cta.text}
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
-      <header className={navContainerClasses}>
-        <div className={navInnerClasses}>
-            
-            {/* LOGO (Aumentada e Melhorada) */}
-            <Link href="/" className="flex items-center group z-50 relative shrink-0">
-                {/* Desktop Logo */}
-                <div className="relative w-40 h-12 hidden md:block">
-                    <Image 
-                        src="/assets/images/LOGO/logotipo/logo preta (1).png"
-                        alt="Facillit Hub Logo"
-                        fill
-                        className="object-contain object-left"
-                        priority
-                        sizes="(max-width: 768px) 100vw, 160px"
-                    />
-                </div>
-                {/* Mobile Logo (Isologo/Ícone para economizar espaço ou Logotipo menor) */}
-                <div className="relative w-32 h-10 md:hidden block">
-                     <Image 
-                        src="/assets/images/LOGO/logotipo/logo preta (1).png"
-                        alt="Facillit Hub Logo"
-                        fill
-                        className="object-contain object-left"
-                        priority
-                    />
-                </div>
-            </Link>
-
-            {/* DESKTOP NAV */}
-            <nav className="hidden lg:flex items-center gap-8">
-              <Link href="/" className={`text-sm font-bold uppercase tracking-wide transition-colors ${linkColor}`}>Início</Link>
-
-              {/* MEGA MENU ECOSSISTEMA */}
-              <div className="group">
-                <button className={`flex items-center gap-1 text-sm font-bold uppercase tracking-wide py-4 transition-colors ${linkColor}`}>
-                  Ecossistema <ChevronDown className="w-4 h-4 text-brand-purple/70 group-hover:text-brand-purple transition-transform group-hover:rotate-180"/>
-                </button>
-                
-                <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[95vw] max-w-[1100px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 pt-4">
-                  <div className="bg-white rounded-3xl shadow-2xl border border-gray-100/50 p-8 grid grid-cols-4 gap-8 relative ring-1 ring-black/5">
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-100/50"></div>
-
-                    {Object.entries(ecossistema).map(([category, items]) => (
-                        <div key={category}>
-                            <h3 className="text-xs font-black text-brand-purple uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">{category}</h3>
-                            <ul className="space-y-2">
-                                {items.map((item) => (
-                                    <li key={item.title}>
-                                        <Link href={item.href} className="group/link flex items-start gap-3 hover:bg-brand-light/50 p-2 rounded-xl transition-all">
-                                            <div className="mt-1 text-brand-green group-hover/link:text-brand-purple transition-colors">
-                                                <item.icon className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <span className="block text-sm font-bold text-gray-700 group-hover/link:text-brand-purple transition-colors">{item.title}</span>
-                                                <span className="text-[11px] text-gray-500 group-hover/link:text-gray-600 leading-tight block mt-0.5">{item.desc}</span>
-                                            </div>
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <Link href="/precos" className={`text-sm font-bold uppercase tracking-wide transition-colors ${linkColor}`}>Preços</Link>
-
-              {/* RECURSOS DROPDOWN */}
-              <div className="group relative">
-                <button className={`flex items-center gap-1 text-sm font-bold uppercase tracking-wide py-4 transition-colors ${linkColor}`}>
-                  Recursos <ChevronDown className="w-4 h-4 text-brand-purple/70 group-hover:text-brand-purple transition-transform group-hover:rotate-180"/>
-                </button>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 w-60">
-                  <div className="bg-white rounded-2xl shadow-xl border border-gray-100/50 p-2 relative ring-1 ring-black/5">
-                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-100/50"></div>
-                    {recursos.map(item => (
-                        <Link key={item.title} href={item.href} className="flex items-center gap-3 p-3 text-sm font-medium text-gray-600 hover:text-brand-purple hover:bg-brand-light/50 rounded-xl transition-colors">
-                            <item.icon className="w-4 h-4 text-brand-green/80" />
-                            {item.title}
-                        </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* SUPORTE DROPDOWN */}
-              <div className="group relative">
-                <button className={`flex items-center gap-1 text-sm font-bold uppercase tracking-wide py-4 transition-colors ${linkColor}`}>
-                  Suporte <ChevronDown className="w-4 h-4 text-brand-purple/70 group-hover:text-brand-purple transition-transform group-hover:rotate-180"/>
-                </button>
-                <div className="absolute top-full right-0 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 w-64">
-                  <div className="bg-white rounded-2xl shadow-xl border border-gray-100/50 p-2 relative ring-1 ring-black/5">
-                    <div className="absolute -top-2 right-8 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-100/50"></div>
-                    {suporte.map(item => (
-                        <Link key={item.title} href={item.href} className={cn("flex items-center gap-3 p-3 text-sm font-medium rounded-xl transition-colors", item.highlight ? 'bg-brand-purple/5 text-brand-purple hover:bg-brand-purple/10' : 'text-gray-600 hover:text-brand-purple hover:bg-brand-light/50')}>
-                            <item.icon className={cn("w-4 h-4", item.highlight ? 'text-brand-purple' : 'text-brand-green/80')} />
-                            {item.title}
-                        </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </nav>
-
-            {/* LOGIN BUTTONS */}
-            <div className="hidden lg:flex items-center gap-3">
-                <Link href="/login" className={`text-sm font-bold px-5 py-2.5 rounded-lg transition-colors hover:bg-gray-100 ${linkColor}`}>
-                    Entrar
-                </Link>
-                <Link href="/register" className="bg-brand-gradient hover:bg-brand-gradient/90 text-white text-sm font-bold px-6 py-2.5 rounded-full shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    Criar Conta
-                </Link>
+      {/* Container Flutuante */}
+      <div className={cn(
+        "fixed left-0 right-0 z-50 flex justify-center transition-all duration-500 px-4",
+        isScrolled ? "top-4" : "top-6"
+      )}>
+        <header 
+          className={cn(
+            "w-full max-w-[1440px] flex items-center justify-between transition-all duration-500",
+            isScrolled 
+              ? "bg-white/85 backdrop-blur-2xl border border-white/40 shadow-xl shadow-black/5 rounded-2xl py-2 pl-4 pr-3" 
+              : "bg-transparent py-2 px-0"
+          )}
+        >
+          {/* 1. LOGO (Isologo) */}
+          <Link href="/" className="relative z-50 group shrink-0 ml-2">
+            <div className="relative w-9 h-9 transition-transform duration-300 group-hover:scale-110">
+              <Image src="/assets/images/LOGO/isologo/preto.png" alt="Facillit Hub" fill className="object-contain" priority />
             </div>
+          </Link>
 
-            {/* MOBILE TOGGLE (Melhorado) */}
-            <button 
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 text-brand-purple focus:outline-none transition-colors z-50 hover:bg-brand-purple/5 rounded-lg"
-                aria-label="Toggle Menu"
-            >
-                {mobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-            </button>
-        </div>
-      </header>
-
-      {/* MOBILE MENU OVERLAY (Design Clean e Espaçado) */}
-      <div className={cn("fixed inset-0 z-40 bg-white transition-transform duration-300 ease-in-out lg:hidden flex flex-col pt-28 px-6 pb-8 overflow-y-auto overscroll-contain", mobileMenuOpen ? 'translate-x-0' : 'translate-x-full')}>
-        
-        <div className="flex flex-col gap-2 pb-10">
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="py-5 text-xl font-bold text-brand-purple border-b border-gray-100">
-                Início
-            </Link>
+          {/* 2. NAV DESKTOP CENTRAL (Glass Capsule) */}
+          <nav className="hidden lg:flex items-center gap-1 bg-white/60 backdrop-blur-md px-1.5 py-1.5 rounded-full border border-gray-100 shadow-sm relative">
             
-            <MobileAccordion title="Ecossistema" isOpen={activeMobileSection === 'eco'} toggle={() => setActiveMobileSection(activeMobileSection === 'eco' ? null : 'eco')}>
-                {Object.entries(ecossistema).map(([cat, items]) => (
-                    <div key={cat} className="mb-6 last:mb-2 pl-2 border-l-2 border-brand-purple/10 ml-1">
-                        <h4 className="text-xs font-black text-brand-purple/60 uppercase mb-3 mt-1 pl-2 tracking-wider">{cat}</h4>
-                        {items.map(item => (
-                            <Link key={item.title} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-start gap-3 py-3 pl-2 text-gray-700 hover:text-brand-purple group">
-                                <item.icon className="w-6 h-6 text-brand-green group-hover:text-brand-purple transition-colors shrink-0" />
-                                <div>
-                                    <span className="text-base font-bold block">{item.title}</span>
-                                    <span className="text-sm text-gray-400">{item.desc}</span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                ))}
-            </MobileAccordion>
-
-            <Link href="/precos" onClick={() => setMobileMenuOpen(false)} className="py-5 text-xl font-bold text-gray-800 border-b border-gray-100 hover:text-brand-purple transition-colors">
-                Preços
+            <Link href="/" className="px-5 py-2 text-sm font-bold text-gray-600 hover:text-brand-purple hover:bg-white rounded-full transition-all">
+              Início
             </Link>
 
-            <MobileAccordion title="Recursos" isOpen={activeMobileSection === 'rec'} toggle={() => setActiveMobileSection(activeMobileSection === 'rec' ? null : 'rec')}>
-                {recursos.map(item => (
-                    <Link key={item.title} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 py-4 pl-2 text-gray-600 group hover:text-brand-purple border-b border-gray-50 last:border-0">
-                        <item.icon className="w-6 h-6 text-brand-green group-hover:text-brand-purple transition-colors shrink-0" />
-                        <span className="text-base font-medium">{item.title}</span>
-                    </Link>
-                ))}
-            </MobileAccordion>
+            <NavTrigger label="Ecossistema" isActive={activeMenu === 'ecossistema'} onEnter={() => handleMenuEnter('ecossistema')} onLeave={handleMenuLeave} />
+            <NavTrigger label="Explorar" isActive={activeMenu === 'explorar'} onEnter={() => handleMenuEnter('explorar')} onLeave={handleMenuLeave} />
+            <NavTrigger label="Recursos" isActive={activeMenu === 'recursos'} onEnter={() => handleMenuEnter('recursos')} onLeave={handleMenuLeave} />
+            <Link href="/precos" className="px-5 py-2 text-sm font-bold text-gray-600 hover:text-brand-purple hover:bg-white rounded-full transition-all">
+              Preços
+            </Link>
+            <NavTrigger label="Suporte" isActive={activeMenu === 'suporte'} onEnter={() => handleMenuEnter('suporte')} onLeave={handleMenuLeave} />
 
-            <MobileAccordion title="Suporte" isOpen={activeMobileSection === 'sup'} toggle={() => setActiveMobileSection(activeMobileSection === 'sup' ? null : 'sup')}>
-                {suporte.map(item => (
-                    <Link key={item.title} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 py-4 pl-2 text-gray-600 group hover:text-brand-purple border-b border-gray-50 last:border-0">
-                        <item.icon className={cn("w-6 h-6 transition-colors shrink-0", item.highlight ? "text-brand-purple" : "text-brand-green group-hover:text-brand-purple")} />
-                        <span className={cn("text-base font-medium", item.highlight && "font-bold text-brand-purple")}>{item.title}</span>
-                    </Link>
-                ))}
-            </MobileAccordion>
+            {/* Renderização dos Menus Flutuantes (Centralizados no Nav) */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0">
+               {renderMegaMenu('ecossistema')}
+               {renderMegaMenu('explorar')}
+               {renderMegaMenu('recursos')}
+               {renderMegaMenu('suporte')}
+            </div>
+          </nav>
+
+          {/* 3. ÁREA DE CONTA (Direita) */}
+          <div className="hidden lg:flex relative items-center gap-2" onMouseEnter={() => handleMenuEnter('conta')} onMouseLeave={handleMenuLeave}>
+             {/* Renderização do Menu Conta (Ancorado à direita) */}
+             <div className="absolute top-full right-0 w-0 h-0">
+                <div 
+                  className={cn(
+                    "absolute top-4 right-0 w-[380px] transition-all duration-300 origin-top-right z-50 perspective-1000",
+                    activeMenu === 'conta' ? "opacity-100 translate-y-0 visible" : "opacity-0 translate-y-4 invisible pointer-events-none"
+                  )}
+                >
+                  <div className="absolute -top-6 right-0 w-full h-10 bg-transparent" />
+                  <div className="bg-white rounded-[24px] shadow-2xl shadow-brand-purple/10 border border-gray-100 p-6 relative overflow-hidden">
+                    <div className="text-center mb-6">
+                        <div className="w-10 h-10 bg-brand-gradient rounded-full mx-auto flex items-center justify-center mb-2 shadow-lg ring-4 ring-purple-50">
+                            <ShieldCheck className="w-5 h-5 text-white" />
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-sm">Acessar Facillit Hub</h3>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Gerencie seu ecossistema</p>
+                    </div>
+                    <div className="space-y-4">
+                       {menuData.conta.groups.map((group, idx) => (
+                          <div key={idx}>
+                             <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 pl-1">{group.title}</h4>
+                             <div className="grid gap-1">
+                                {group.items.map(item => <RichCard key={item.title} item={item} />)}
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                  </div>
+                </div>
+             </div>
+
+             <button className={cn(
+               "flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full font-bold text-sm transition-all border",
+               activeMenu === 'conta' 
+                 ? "bg-gray-900 text-white border-gray-900 shadow-md ring-2 ring-brand-purple/20" 
+                 : "bg-white text-gray-700 border-gray-200 hover:border-brand-purple hover:text-brand-purple"
+             )}>
+                <span>Minha Conta</span>
+                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center transition-colors", activeMenu === 'conta' ? "bg-white/20" : "bg-gray-100")}>
+                    <UserCog className="w-4 h-4" />
+                </div>
+             </button>
+          </div>
+
+          {/* MOBILE TOGGLE */}
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="lg:hidden p-2.5 text-gray-800 bg-white rounded-full shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition-all"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </header>
+      </div>
+
+      {/* --- MENU MOBILE (Drawer Lateral Premium) --- */}
+      <div 
+        className={cn("fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-500 lg:hidden", mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none")}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
+      <div className={cn(
+        "fixed top-0 right-0 z-[70] w-[85%] max-w-[400px] h-full bg-white shadow-2xl transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) lg:hidden flex flex-col",
+        mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+      )}>
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <span className="text-xl font-bold text-brand-dark tracking-tight">Menu</span>
+          <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-gray-50 rounded-full text-gray-500 hover:text-red-500 transition-colors">
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        {/* Mobile Footer Actions (Botões maiores) */}
-        <div className="mt-auto flex flex-col gap-4 bg-white pt-6 border-t border-gray-100 pb-safe">
-            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full py-4 text-center border-2 border-brand-purple text-brand-purple rounded-2xl font-bold text-lg hover:bg-brand-purple/5 transition-colors">
-                Entrar
-            </Link>
-            <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="w-full py-4 text-center bg-brand-gradient text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all">
-                Criar Conta
-            </Link>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl font-bold text-gray-800">
+            Início
+          </Link>
+
+          {['ecossistema', 'explorar', 'recursos', 'suporte', 'conta'].map((key) => {
+             const section = menuData[key];
+             const isOpen = activeMobileSection === key;
+             return (
+               <div key={key} className="border-b border-gray-100 last:border-0">
+                 <button 
+                   onClick={() => setActiveMobileSection(isOpen ? null : key)} 
+                   className={cn("flex items-center justify-between w-full py-5 px-2 rounded-xl transition-all", isOpen ? "bg-gray-50" : "")}
+                 >
+                   <span className={cn("font-bold text-lg", isOpen ? 'text-brand-purple' : 'text-gray-700')}>{section.label}</span>
+                   <ChevronDown className={cn("w-5 h-5 transition-transform", isOpen ? "rotate-180 text-brand-purple" : "text-gray-400")} />
+                 </button>
+                 <div className={cn("grid transition-all duration-300", isOpen ? 'grid-rows-[1fr] opacity-100 pb-4' : 'grid-rows-[0fr] opacity-0')}>
+                   <div className="overflow-hidden px-2 space-y-6 pt-2">
+                     {section.groups.map((group, idx) => (
+                       <div key={idx}>
+                         <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 pl-1">{group.title}</h4>
+                         <div className="grid gap-1">
+                           {group.items.map(item => (
+                             <Link key={item.title} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100">
+                               <div className={cn("p-1.5 rounded-lg shrink-0", item.bg)}>
+                                  <item.icon className={cn("w-4 h-4", item.color)} />
+                               </div>
+                               <div>
+                                 <span className="block text-sm font-bold text-gray-800">{item.title}</span>
+                                 <span className="text-[10px] text-gray-500 line-clamp-1">{item.desc}</span>
+                               </div>
+                             </Link>
+                           ))}
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               </div>
+             );
+          })}
+          
+          <Link href="/precos" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between p-4 font-bold text-gray-700 rounded-xl hover:bg-gray-50">
+            Preços <ExternalLink className="w-4 h-4 text-gray-400" />
+          </Link>
+        </div>
+
+        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+          <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full py-4 text-center font-bold text-white bg-brand-dark rounded-xl shadow-lg mb-3 active:scale-[0.98] transition-transform">
+            Acessar Conta
+          </Link>
         </div>
       </div>
     </>
