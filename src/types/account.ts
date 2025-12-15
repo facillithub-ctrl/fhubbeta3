@@ -1,10 +1,10 @@
 export type AILevel = "moderate" | "intermediate" | "advanced";
 export type AccountType = "student" | "professional" | "enterprise" | "none";
 
-// Interface exata da tabela 'profiles' no Supabase
+// Interface do Perfil no Banco de Dados
 export interface UserProfile {
   id: string;
-  email: string; // Vem de auth.users, mas unificamos aqui no front
+  email: string;
   facillit_id: string;
   handle: string;
   full_name: string;
@@ -12,40 +12,26 @@ export interface UserProfile {
   bio: string | null;
   account_type: AccountType;
   
-  // JSONB Fields tipados
-  address: {
-    cep: string;
-    street: string;
-    city: string;
-    state: string;
-    number?: string;
-  } | null;
-  
+  // Configurações JSONB
   active_modules: string[];
-  
   ai_level: AILevel;
-  
   device_settings: {
     trusted: boolean;
     notifications: boolean;
     twoFactor: boolean;
   };
-
+  
   created_at: string;
 }
 
-// Tipos para as Actions
+// Tipos para Atualização
 export interface UpdateProfileDTO {
   full_name?: string;
   handle?: string;
   bio?: string;
-  address?: UserProfile['address'];
   avatar_url?: string;
-}
-
-export interface UpdateSecurityDTO {
-  password?: string;
-  email?: string;
+  ai_level?: AILevel;
+  device_settings?: UserProfile['device_settings'];
 }
 
 export interface ActionResult {
