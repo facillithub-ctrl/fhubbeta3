@@ -1,64 +1,57 @@
-import { 
-  Check, 
-  // Icons do Header
-  PenTool, ClipboardCheck, PlayCircle, Gamepad2, BookOpen, Workflow, GraduationCap, // Education
-  School, FlaskConical, // Schools
-  LayoutDashboard, Cloud, Code2, // Startups
-  Shield, Users, CreditCard, // Enterprise
-  Calendar, MessageCircle, Briefcase, TrendingUp // Individuals
-} from "lucide-react";
+"use client";
+
+import { Check, ArrowRight, PenTool, ClipboardCheck, PlayCircle, Gamepad2, BookOpen, Workflow, GraduationCap, School, FlaskConical, LayoutDashboard, Cloud, Code2, Shield, Users, CreditCard, Calendar, MessageCircle, Briefcase, TrendingUp } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { StepProps } from "@/types/onboarding";
 
-// Mapeamento Completo com Ícones Lucide
+// Mapeamento Completo
 const ecosystem = [
   {
-    category: "Facillit for Education",
-    target: ["education"], 
+    category: "Education",
+    target: ["education"],
     modules: [
-      { id: "write", title: "Write", icon: PenTool, desc: "Redação IA" },
-      { id: "games", title: "Games", icon: Gamepad2, desc: "Gamificação" },
-      { id: "test", title: "Test", icon: ClipboardCheck, desc: "Simulados" },
-      { id: "play", title: "Play", icon: PlayCircle, desc: "Streaming" },
-      { id: "library", title: "Library", icon: BookOpen, desc: "Biblioteca" },
-      { id: "create", title: "Create", icon: Workflow, desc: "Mapas Mentais" },
-      { id: "teacher", title: "Teacher", icon: GraduationCap, desc: "Gestão Tutor" },
+        { id: "write", title: "Write", icon: PenTool, desc: "Redação IA" },
+        { id: "games", title: "Games", icon: Gamepad2, desc: "Gamificação" },
+        { id: "test", title: "Test", icon: ClipboardCheck, desc: "Simulados" },
+        { id: "play", title: "Play", icon: PlayCircle, desc: "Streaming" },
+        { id: "library", title: "Library", icon: BookOpen, desc: "Biblioteca" },
+        { id: "create", title: "Create", icon: Workflow, desc: "Mapas Mentais" },
     ]
   },
   {
-    category: "Facillit for Individuals",
-    target: ["individuals", "education", "professional"],
-    modules: [
-      { id: "day", title: "Day", icon: Calendar, desc: "Agenda" },
-      { id: "finances", title: "Finances", icon: TrendingUp, desc: "Finanças" },
-      { id: "stories", title: "Stories", icon: MessageCircle, desc: "Comunidade" },
-      { id: "career", title: "C&C", icon: Briefcase, desc: "Carreira" },
-    ]
-  },
-  {
-    category: "Facillit for Schools",
+    category: "Schools",
     target: ["schools"],
     modules: [
-      { id: "edu", title: "Edu", icon: School, desc: "Gestão Escolar" },
-      { id: "lab", title: "Lab", icon: FlaskConical, desc: "Laboratório 3D" },
+        { id: "edu", title: "Edu", icon: School, desc: "Gestão Escolar" },
+        { id: "lab", title: "Lab", icon: FlaskConical, desc: "Laboratório 3D" },
     ]
   },
   {
-    category: "Facillit for Startups",
+    category: "Startups",
     target: ["startups", "enterprise"],
     modules: [
-      { id: "center", title: "Center", icon: LayoutDashboard, desc: "Sistema Op." },
-      { id: "host", title: "Host", icon: Cloud, desc: "Cloud Hosting" },
-      { id: "api", title: "API", icon: Code2, desc: "API Gateway" },
+        { id: "center", title: "Center", icon: LayoutDashboard, desc: "Sistema Op." },
+        { id: "host", title: "Host", icon: Cloud, desc: "Cloud Hosting" },
+        { id: "api", title: "API", icon: Code2, desc: "API Gateway" },
     ]
   },
   {
-    category: "Facillit for Enterprise",
+    category: "Enterprise",
     target: ["enterprise"],
     modules: [
-      { id: "access", title: "Access", icon: Shield, desc: "IAM & SSO" },
-      { id: "people", title: "People", icon: Users, desc: "RH Tech" },
-      { id: "card", title: "Card", icon: CreditCard, desc: "Benefícios" },
+        { id: "access", title: "Access", icon: Shield, desc: "IAM & SSO" },
+        { id: "people", title: "People", icon: Users, desc: "RH Tech" },
+        { id: "card", title: "Card", icon: CreditCard, desc: "Benefícios" },
+    ]
+  },
+  {
+    category: "Individuals",
+    target: ["individuals", "education", "professional"],
+    modules: [
+        { id: "day", title: "Day", icon: Calendar, desc: "Agenda" },
+        { id: "finances", title: "Finances", icon: TrendingUp, desc: "Finanças" },
+        { id: "stories", title: "Stories", icon: MessageCircle, desc: "Comunidade" },
+        { id: "career", title: "C&C", icon: Briefcase, desc: "Carreira" },
     ]
   }
 ];
@@ -75,11 +68,11 @@ export default function StepModules({ data, update, onNext, onBack }: StepProps)
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500 h-full flex flex-col">
+    <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 h-full flex flex-col">
       <div className="flex justify-between items-end border-b border-gray-100 pb-4">
         <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Módulos Ativos</h1>
-            <p className="text-gray-500">Selecione o que você usará no dia a dia.</p>
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Seus Aplicativos</h1>
+            <p className="text-gray-500 text-lg">Ative o que você mais usa.</p>
         </div>
         <div className="text-right">
             <span className="text-2xl font-bold text-brand-purple">{data.selectedModules.length}</span>
@@ -89,17 +82,10 @@ export default function StepModules({ data, update, onNext, onBack }: StepProps)
 
       <div className="flex-1 overflow-y-auto pr-2 pb-4 space-y-8">
         {ecosystem.map((section) => {
-            // Lógica de Exibição Inteligente
-            // Mostra a categoria se ela for alvo do perfil escolhido OU se o usuário já tiver selecionado algum módulo dela
             const isTarget = section.target.includes(data.profileType || "none");
-            const hasSelected = section.modules.some(m => data.selectedModules.includes(m.id));
-            const shouldShow = isTarget || hasSelected; // Expandido ou recolhido poderia ser uma opção, aqui mostro tudo se relevante
-
-            // Se o perfil for muito diferente (ex: Estudante vendo Enterprise), podemos ocultar ou mostrar com baixa opacidade
-            // Vou optar por mostrar tudo para dar visão de ecossistema, mas destacar o target.
             
             return (
-                <div key={section.category} className={cn("space-y-3 transition-opacity", !isTarget && !hasSelected ? "opacity-50 hover:opacity-100" : "opacity-100")}>
+                <div key={section.category} className="space-y-4">
                     <div className="flex items-center gap-3">
                         <h3 className={cn("text-sm font-black uppercase tracking-widest", isTarget ? "text-brand-purple" : "text-gray-400")}>
                             {section.category}

@@ -6,7 +6,6 @@ export interface AddressData {
   uf: string;
   numero?: string;
   complemento?: string;
-  // Campos opcionais que o ViaCEP pode retornar
   ddd?: string;
   gia?: string;
   ibge?: string;
@@ -34,7 +33,7 @@ export interface OnboardingData {
   // Perfil & Contexto
   profileType: ProfileType;
   
-  // Módulos (IDs dos apps)
+  // Módulos (IDs dos apps selecionados)
   selectedModules: string[];
   
   // Inteligência Artificial

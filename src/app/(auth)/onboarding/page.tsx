@@ -27,6 +27,7 @@ export default function OnboardingOrchestrator() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Estado Centralizado com Tipagem Forte
   const [formData, setFormData] = useState<OnboardingData>({
     handle: "",
     profileImage: null,
@@ -54,6 +55,7 @@ export default function OnboardingOrchestrator() {
 
   const finishOnboarding = async () => {
     setIsLoading(true);
+    // Simulação de delay para "Configurando seu Hub..."
     setTimeout(() => {
       setIsLoading(false);
       router.push("/select-hub");
@@ -63,10 +65,10 @@ export default function OnboardingOrchestrator() {
   const progressPercentage = (step / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50/50 font-sans selection:bg-brand-purple/20 selection:text-brand-purple flex flex-col relative">
+    <div className="min-h-screen bg-gray-50/50 font-sans selection:bg-brand-purple/20 selection:text-brand-purple flex flex-col relative pb-32">
       
-      {/* --- HEADER (Top Bar) --- */}
-      <header className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 z-50 h-24">
+      {/* --- HEADER (Top Bar com Logo Account) --- */}
+      <header className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 z-50 h-24 transition-all">
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
             
             {/* Logo Account em Destaque */}
@@ -87,7 +89,7 @@ export default function OnboardingOrchestrator() {
                 </div>
             </div>
 
-            {/* Stepper Visual */}
+            {/* Stepper Visual Horizontal */}
             <div className="hidden md:flex items-center gap-4 lg:gap-8">
                 {steps.map((s) => (
                     <div key={s.id} className="flex flex-col items-center gap-1 group cursor-default">
@@ -111,7 +113,7 @@ export default function OnboardingOrchestrator() {
             </button>
         </div>
 
-        {/* Linha de Progresso */}
+        {/* Linha de Progresso Gradiente */}
         <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-100">
             <div 
                 className="h-full bg-brand-gradient shadow-[0_0_15px_rgba(139,92,246,0.6)] transition-all duration-700 ease-out" 
@@ -120,11 +122,11 @@ export default function OnboardingOrchestrator() {
         </div>
       </header>
 
-      {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 pt-32 pb-20 px-4 flex flex-col items-center">
+      {/* --- ÁREA PRINCIPAL (Centralizada) --- */}
+      <main className="flex-1 pt-36 px-4 flex flex-col items-center justify-start">
         
         {/* Card Principal do Wizard */}
-        <div className="w-full max-w-4xl bg-white rounded-[40px] shadow-[0_20px_80px_-20px_rgba(0,0,0,0.08)] border border-gray-100 p-8 md:p-14 animate-in slide-in-from-bottom-4 duration-700 relative z-10 mb-12">
+        <div className="w-full max-w-4xl bg-white rounded-[40px] shadow-[0_20px_80px_-20px_rgba(0,0,0,0.08)] border border-gray-100 p-8 md:p-14 animate-in slide-in-from-bottom-4 duration-700 relative z-10 mb-8">
             {step === 1 && <StepIdentity data={formData} update={updateData} onNext={nextStep} />}
             {step === 2 && <StepLocation data={formData} update={updateData} onNext={nextStep} onBack={prevStep} />}
             {step === 3 && <StepProfile data={formData} update={updateData} onNext={nextStep} onBack={prevStep} />}
@@ -132,37 +134,37 @@ export default function OnboardingOrchestrator() {
             {step === 5 && <StepAI data={formData} update={updateData} onBack={prevStep} onFinish={finishOnboarding} isLoading={isLoading} />}
         </div>
 
-        {/* --- NOVO CARD DE CONFIANÇA (Centralizado e Fixo no Final) --- */}
-        <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 delay-300 duration-1000">
-            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left shadow-sm">
+        {/* --- CARD DE SEGURANÇA FIXO (Abaixo do Card Principal) --- */}
+        <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 delay-300 duration-1000 mb-8">
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left shadow-sm hover:shadow-md transition-shadow cursor-default group">
                 
-                {/* Ícone de Escudo/Identidade */}
-                <div className="flex items-center justify-center w-12 h-12 bg-green-50 rounded-full text-brand-green shrink-0">
+                {/* Ícone de Escudo */}
+                <div className="flex items-center justify-center w-12 h-12 bg-green-50 rounded-full text-brand-green shrink-0 group-hover:scale-110 transition-transform">
                     <ShieldCheck className="w-6 h-6" />
                 </div>
 
-                {/* Texto de Credibilidade */}
+                {/* Texto de Confiança */}
                 <div className="flex-1 space-y-1">
                     <h4 className="text-sm font-extrabold text-gray-900 uppercase tracking-wide flex items-center justify-center md:justify-start gap-2">
                         Ambiente Seguro <span className="w-1 h-1 bg-gray-300 rounded-full"></span> Facillit Account
                     </h4>
                     <p className="text-xs text-gray-500 leading-relaxed max-w-lg">
-                        Seus dados são protegidos com <strong>criptografia de ponta-a-ponta</strong>. Garantimos total segurança e autonomia sobre suas informações, em estrita conformidade com as leis vigentes (LGPD/GDPR).
+                        Garantimos total segurança e autonomia sobre seus dados, em estrita conformidade com as leis vigentes.
                     </p>
                 </div>
 
-                {/* Ícones Secundários (Visual Trust) */}
-                <div className="flex items-center gap-4 text-gray-300 border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-6">
-                    <div className="flex flex-col items-center gap-1" title="Criptografado">
-                        <Lock className="w-5 h-5" />
+                {/* Ícones de Compliance */}
+                <div className="flex items-center gap-5 text-gray-300 border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-6">
+                    <div className="flex flex-col items-center gap-1 group/icon" title="Criptografia SSL">
+                        <Lock className="w-5 h-5 group-hover/icon:text-brand-purple transition-colors" />
                         <span className="text-[9px] font-bold uppercase">SSL</span>
                     </div>
-                    <div className="flex flex-col items-center gap-1" title="Conformidade Legal">
-                        <Scale className="w-5 h-5" />
+                    <div className="flex flex-col items-center gap-1 group/icon" title="Jurídico">
+                        <Scale className="w-5 h-5 group-hover/icon:text-brand-purple transition-colors" />
                         <span className="text-[9px] font-bold uppercase">Legal</span>
                     </div>
-                    <div className="flex flex-col items-center gap-1" title="Identidade Única">
-                        <Fingerprint className="w-5 h-5" />
+                    <div className="flex flex-col items-center gap-1 group/icon" title="Identidade Única">
+                        <Fingerprint className="w-5 h-5 group-hover/icon:text-brand-purple transition-colors" />
                         <span className="text-[9px] font-bold uppercase">ID</span>
                     </div>
                 </div>
@@ -171,7 +173,6 @@ export default function OnboardingOrchestrator() {
         </div>
 
       </main>
-
     </div>
   );
 }
