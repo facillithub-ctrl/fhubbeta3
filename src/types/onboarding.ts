@@ -1,18 +1,44 @@
+export interface AddressData {
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  numero?: string;
+  complemento?: string;
+  // Campos opcionais que o ViaCEP pode retornar
+  ddd?: string;
+  gia?: string;
+  ibge?: string;
+  siafi?: string;
+}
+
+export type ProfileType = 
+  | "education" 
+  | "individuals" 
+  | "schools" 
+  | "startups" 
+  | "enterprise" 
+  | null;
+
+export type AiLevel = "moderate" | "intermediate" | "advanced";
+
 export interface OnboardingData {
+  // Identidade
   handle: string;
   profileImage: string | null;
-  address: {
-    cep: string;
-    logradouro: string;
-    bairro: string;
-    localidade: string;
-    uf: string;
-    numero?: string;
-    complemento?: string;
-  } | null;
-  profileType: "student" | "professional" | "enterprise" | "none" | null;
+  
+  // Localização
+  address: AddressData | null;
+  
+  // Perfil & Contexto
+  profileType: ProfileType;
+  
+  // Módulos (IDs dos apps)
   selectedModules: string[];
-  aiLevel: "moderate" | "intermediate" | "advanced";
+  
+  // Inteligência Artificial
+  aiLevel: AiLevel;
   deviceTrusted: boolean;
   permissions: {
     recommendations: boolean;
