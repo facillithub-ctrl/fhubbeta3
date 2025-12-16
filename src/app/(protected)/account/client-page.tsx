@@ -7,6 +7,7 @@ import { UserProfile, UserIntelligence, AccountTabOption } from "@/types/account
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
+// Tabs
 import OverviewTab from "./_components/overview-tab";
 import ProfileTab from "./_components/profile-tab";
 import SecurityTab from "./_components/security-tab";
@@ -40,16 +41,17 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 animate-in fade-in duration-500">
         
+        {/* Header */}
         <div className="mb-10">
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Minha Conta</h1>
             <p className="text-sm text-gray-500 mt-1">Gerencie suas preferências e identidade no ecossistema.</p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-col lg:flex-row gap-10">
             
-            {/* Nav */}
+            {/* --- MENU DE NAVEGAÇÃO INTERNO --- */}
             <nav className="w-full lg:w-64 flex-shrink-0">
                 <div className="flex lg:flex-col gap-1 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 sticky top-4">
                     {menuItems.map((item) => {
@@ -72,25 +74,24 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
                         )
                     })}
 
-                    <div className="w-[1px] h-6 bg-gray-200 lg:hidden mx-2"></div>
-                    <div className="lg:mt-6 lg:pt-6 lg:border-t lg:border-gray-100">
-                        <button 
-                            onClick={handleLogout}
-                            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 rounded-xl hover:bg-red-50 transition-all w-full text-left"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            Sair
-                        </button>
-                    </div>
+                    <div className="hidden lg:block w-full h-[1px] bg-gray-100 my-2"></div>
+                    
+                    <button 
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 rounded-xl hover:bg-red-50 transition-all w-full text-left mt-0 lg:mt-2"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                    </button>
                 </div>
             </nav>
 
-            {/* Content */}
+            {/* --- ÁREA DE CONTEÚDO --- */}
             <div className="flex-1 min-w-0 bg-white rounded-3xl lg:border lg:border-gray-100 lg:p-8 lg:shadow-sm">
                 {activeTab === "overview" && <OverviewTab user={initialUser} intelligence={initialIntelligence} setTab={setActiveTab} />}
                 {activeTab === "profile" && <ProfileTab user={initialUser} />}
-                {activeTab === "security" && <SecurityTab />}
-                {activeTab === "ai" && <AiTab />}
+                {activeTab === "security" && <SecurityTab user={initialUser} />}
+                {activeTab === "ai" && <AiTab user={initialUser} />}
             </div>
 
         </div>

@@ -1,13 +1,11 @@
 import { AddressData } from "./onboarding";
 
-// Tipo para as Abas de Navegação (Compartilhado)
+// Navegação
 export type AccountTabOption = "overview" | "profile" | "security" | "ai";
 
 export type AccountRole = 'individual' | 'student' | 'teacher' | 'institution' | 'admin';
 
-// Helper para JSONB seguro
-export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-
+// Interfaces JSONB
 export interface AIPreferences {
   data_sharing: boolean;
   personalization: boolean;
@@ -25,9 +23,10 @@ export interface DeviceSettings {
   notifications: boolean;
 }
 
+// Modelo de Perfil (Profiles Table)
 export interface UserProfile {
   id: string;
-  email: string;
+  email: string; // Vem de auth.users, mas unificado aqui para facilitar
   facillit_id: string | null;
   handle: string | null;
   full_name: string | null;
@@ -37,11 +36,10 @@ export interface UserProfile {
   gender: string | null;
   pronouns: string | null;
   
-  // JSONBs tipados corretamente
   address: AddressData | null;
-  ai_preferences: AIPreferences;
-  privacy_settings: PrivacySettings;
-  device_settings: DeviceSettings;
+  ai_preferences: AIPreferences | null;
+  privacy_settings: PrivacySettings | null;
+  device_settings: DeviceSettings | null;
   
   account_type: AccountRole;
   onboarding_completed: boolean;
@@ -50,15 +48,15 @@ export interface UserProfile {
   created_at: string;
 }
 
+// Modelo de Inteligência
 export interface UserIntelligence {
   profile_id: string;
-  // Usamos 'unknown' ou estrutura específica em vez de 'any'
   cognitive_profile: Record<string, unknown>; 
   productive_profile: {
     top_habits?: string[];
     avg_focus_time?: number;
     tasks_completed?: number;
-  };
+  } | null;
   financial_profile: Record<string, unknown>;
   career_profile: Record<string, unknown>;
 }
