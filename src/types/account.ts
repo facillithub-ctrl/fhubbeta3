@@ -1,40 +1,64 @@
-export type AILevel = "moderate" | "intermediate" | "advanced";
-export type AccountType = "student" | "professional" | "enterprise" | "none";
+import { AddressData } from "./onboarding";
 
-// Interface do Perfil no Banco de Dados
+// Tipo para as Abas de Navegação (Compartilhado)
+export type AccountTabOption = "overview" | "profile" | "security" | "ai";
+
+export type AccountRole = 'individual' | 'student' | 'teacher' | 'institution' | 'admin';
+
+// Helper para JSONB seguro
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+export interface AIPreferences {
+  data_sharing: boolean;
+  personalization: boolean;
+  autonomy_level: 'moderate' | 'intermediate' | 'advanced';
+}
+
+export interface PrivacySettings {
+  allow_ads: boolean;
+  share_data: boolean;
+  public_profile: boolean;
+}
+
+export interface DeviceSettings {
+  trusted: boolean;
+  notifications: boolean;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
-  facillit_id: string;
-  handle: string;
-  full_name: string;
+  facillit_id: string | null;
+  handle: string | null;
+  full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
-  account_type: AccountType;
+  birth_date: string | null;
+  gender: string | null;
+  pronouns: string | null;
   
-  // Configurações JSONB
-  active_modules: string[];
-  ai_level: AILevel;
-  device_settings: {
-    trusted: boolean;
-    notifications: boolean;
-    twoFactor: boolean;
-  };
+  // JSONBs tipados corretamente
+  address: AddressData | null;
+  ai_preferences: AIPreferences;
+  privacy_settings: PrivacySettings;
+  device_settings: DeviceSettings;
+  
+  account_type: AccountRole;
+  onboarding_completed: boolean;
+  ai_level: string;
   
   created_at: string;
 }
 
-// Tipos para Atualização
-export interface UpdateProfileDTO {
-  full_name?: string;
-  handle?: string;
-  bio?: string;
-  avatar_url?: string;
-  ai_level?: AILevel;
-  device_settings?: UserProfile['device_settings'];
-}
-
-export interface ActionResult {
-  success: boolean;
-  message: string;
+export interface UserIntelligence {
+  profile_id: string;
+  // Usamos 'unknown' ou estrutura específica em vez de 'any'
+  cognitive_profile: Record<string, unknown>; 
+  productive_profile: {
+    top_habits?: string[];
+    avg_focus_time?: number;
+    tasks_completed?: number;
+  };
+  financial_profile: Record<string, unknown>;
+  career_profile: Record<string, unknown>;
 }

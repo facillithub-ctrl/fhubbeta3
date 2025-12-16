@@ -1,89 +1,82 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { ShieldCheck, Smartphone, Key, Lock, Save, Loader2 } from "lucide-react";
-import { updateSecuritySettings } from "../actions";
+import { useState } from "react";
+import { Lock, Key, Smartphone, Loader2 } from "lucide-react";
+import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 
-export function SecurityTab({ profile }: { profile: any }) {
-  const [isPending, startTransition] = useTransition();
-  // Inicializa com valores do banco ou padrão
-  const [settings, setSettings] = useState(profile.device_settings || { trusted: false, notifications: true, twoFactor: false });
+export default function SecurityTab() {
+  const [loading, setLoading] = useState(false);
 
-  const handleToggle = (key: string) => {
-    const newSettings = { ...settings, [key]: !settings[key] };
-    setSettings(newSettings);
-    
-    // Auto-save para UX fluida
-    startTransition(async () => {
-        await updateSecuritySettings(profile.id, newSettings);
-    });
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => setLoading(false), 2000);
   };
 
   return (
-    <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-4">
+    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
         
-        {/* Status de Segurança */}
-        <div className="bg-gradient-to-r from-brand-purple to-brand-dark rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
-            <div className="relative z-10 flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold mb-1">Status de Segurança</h2>
-                    <p className="text-white/80 text-sm">Sua conta está protegida.</p>
+        <div className="border-b border-gray-100 pb-5">
+            <h2 className="text-xl font-bold text-gray-900">Segurança & Login</h2>
+            <p className="text-xs text-gray-500 mt-1">Proteja sua conta e verifique atividades.</p>
+        </div>
+
+        {/* Alterar Senha */}
+        <form onSubmit={handlePasswordChange} className="space-y-4 max-w-lg">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <Key className="w-4 h-4 text-brand-purple"/> Alterar Senha
+            </h3>
+            
+            <div className="space-y-3">
+                <input 
+                    type="password" 
+                    placeholder="Senha Atual"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-1 focus:ring-brand-purple transition-all"
+                />
+                <input 
+                    type="password" 
+                    placeholder="Nova Senha"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-1 focus:ring-brand-purple transition-all"
+                />
+            </div>
+            
+            <button 
+                type="submit" 
+                disabled={loading}
+                className="px-6 py-2.5 bg-gray-900 text-white text-xs font-bold rounded-xl hover:bg-black transition-all flex items-center gap-2"
+            >
+                {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+                Atualizar Senha
+            </button>
+        </form>
+
+        <div className="w-full h-[1px] bg-gray-100 my-8"></div>
+
+        {/* MFA / Dispositivos */}
+        <div className="space-y-4">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-brand-purple"/> Dispositivos Conectados
+            </h3>
+            
+            <div className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold">💻</span>
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-gray-900">Chrome no Windows</p>
+                        <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Ativo agora
+                        </p>
+                    </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md p-3 rounded-full">
-                    <ShieldCheck className="w-8 h-8 text-green-400" />
-                </div>
+                <span className="text-[10px] text-gray-400">São Paulo, BR</span>
             </div>
         </div>
 
-        {/* Controles */}
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600"><Smartphone className="w-5 h-5" /></div>
-                    <div>
-                        <h4 className="font-bold text-gray-900">Dispositivo Confiável</h4>
-                        <p className="text-xs text-gray-500">Manter sessão ativa neste navegador.</p>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => handleToggle('trusted')}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors ${settings.trusted ? 'bg-brand-green' : 'bg-gray-300'}`}
-                >
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${settings.trusted ? 'translate-x-6' : 'translate-x-0'}`} />
-                </button>
-            </div>
-
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-purple-50 rounded-lg text-brand-purple"><Key className="w-5 h-5" /></div>
-                    <div>
-                        <h4 className="font-bold text-gray-900">Autenticação em 2 Fatores (2FA)</h4>
-                        <p className="text-xs text-gray-500">Camada extra de proteção.</p>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => handleToggle('twoFactor')}
-                    className={`w-12 h-6 rounded-full p-1 transition-colors ${settings.twoFactor ? 'bg-brand-purple' : 'bg-gray-300'}`}
-                >
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${settings.twoFactor ? 'translate-x-6' : 'translate-x-0'}`} />
-                </button>
-            </div>
-
-            <div className="p-6 flex items-center justify-between group cursor-pointer hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-red-50 rounded-lg text-red-500"><Lock className="w-5 h-5" /></div>
-                    <div>
-                        <h4 className="font-bold text-gray-900">Alterar Senha</h4>
-                        <p className="text-xs text-gray-500">Última alteração: há 3 meses</p>
-                    </div>
-                </div>
-                <button className="text-xs font-bold border border-gray-200 px-3 py-1.5 rounded-lg text-gray-600 group-hover:border-gray-300 transition-all">
-                    Alterar
-                </button>
-            </div>
+        <div className="pt-4">
+            <SecureEnvironmentCard />
         </div>
-        
-        {isPending && <p className="text-xs text-brand-purple flex items-center gap-1 justify-end"><Loader2 className="w-3 h-3 animate-spin"/> Salvando...</p>}
     </div>
   );
 }

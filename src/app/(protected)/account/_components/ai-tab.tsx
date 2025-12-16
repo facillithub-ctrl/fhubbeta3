@@ -1,77 +1,73 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Sparkles, BrainCircuit, Shield, Zap } from "lucide-react";
-import { updateAISettings } from "../actions";
+import { useState } from "react";
+import { Sparkles, Bot } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
-const levels = [
-  { id: "moderate", title: "Moderada", desc: "IA passiva, age apenas quando solicitada.", icon: Shield },
-  { id: "intermediate", title: "Equilibrada", desc: "Sugestões úteis baseadas no seu uso.", icon: Sparkles },
-  { id: "advanced", title: "Autônoma", desc: "IA proativa, automação total de rotinas.", icon: BrainCircuit },
+type AiLevel = "moderate" | "intermediate" | "advanced";
+
+const levels: { id: AiLevel; label: string; desc: string; power: number }[] = [
+    { id: "moderate", label: "Passivo", desc: "Apenas correções quando solicitado.", power: 33 },
+    { id: "intermediate", label: "Assistente", desc: "Sugestões proativas e insights.", power: 66 },
+    { id: "advanced", label: "Autônomo", desc: "Análise preditiva e gestão ativa.", power: 100 },
 ];
 
-export function AITab({ profile }: { profile: any }) {
-  const [isPending, startTransition] = useTransition();
-  const [currentLevel, setCurrentLevel] = useState(profile.ai_level || "intermediate");
-
-  const handleSelect = (id: string) => {
-    setCurrentLevel(id);
-    startTransition(async () => {
-        await updateAISettings(profile.id, { aiLevel: id });
-    });
-  };
+export default function AiTab() {
+  const [currentLevel, setCurrentLevel] = useState<AiLevel>("intermediate");
 
   return (
-    <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-4">
+    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
         
-        <div className="text-center md:text-left">
+        <div className="border-b border-gray-100 pb-5">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-brand-purple" /> Cérebro do Hub
+                <Sparkles className="w-5 h-5 text-brand-purple" /> Inteligência Artificial
             </h2>
-            <p className="text-gray-500 text-sm mt-1">Defina o quanto a Inteligência Artificial pode te ajudar.</p>
+            <p className="text-xs text-gray-500 mt-1">Ajuste o nível de autonomia do Facillit AI.</p>
         </div>
 
-        <div className="grid gap-4">
+        {/* Card Visual Interativo */}
+        <div className="bg-brand-gradient rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg">
+            <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 border border-white/30">
+                    <Bot className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold">Nível Atual: {levels.find(l => l.id === currentLevel)?.label}</h3>
+                <p className="text-xs text-white/80 mb-6">{levels.find(l => l.id === currentLevel)?.desc}</p>
+
+                <div className="w-full max-w-sm h-1.5 bg-black/20 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-700 ease-out"
+                        style={{ width: `${levels.find(l => l.id === currentLevel)?.power}%` }}
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        {/* Seletores */}
+        <div className="grid grid-cols-1 gap-3">
             {levels.map((lvl) => (
                 <button
                     key={lvl.id}
-                    onClick={() => handleSelect(lvl.id)}
+                    onClick={() => setCurrentLevel(lvl.id)}
                     className={cn(
-                        "flex items-center gap-5 p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden",
+                        "flex items-center gap-4 p-4 rounded-xl border transition-all text-left group",
                         currentLevel === lvl.id 
-                            ? "border-brand-purple bg-purple-50/50 ring-1 ring-brand-purple" 
-                            : "border-gray-100 bg-white hover:border-gray-200"
+                            ? "border-brand-purple bg-purple-50/10 ring-1 ring-brand-purple/20" 
+                            : "border-gray-200 bg-white hover:border-gray-300"
                     )}
                 >
-                    <div className={cn("p-3 rounded-xl shrink-0 transition-colors", currentLevel === lvl.id ? "bg-brand-purple text-white" : "bg-gray-100 text-gray-500")}>
-                        <lvl.icon className="w-6 h-6" />
+                    <div className={cn(
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                        currentLevel === lvl.id ? "border-brand-purple" : "border-gray-300"
+                    )}>
+                        <div className={cn("w-2.5 h-2.5 rounded-full transition-all", currentLevel === lvl.id ? "bg-brand-purple scale-100" : "scale-0")} />
                     </div>
-                    <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{lvl.title}</h3>
-                        <p className="text-sm text-gray-500">{lvl.desc}</p>
+                    <div>
+                        <span className={cn("block text-sm font-bold", currentLevel === lvl.id ? "text-brand-purple" : "text-gray-900")}>{lvl.label}</span>
+                        <span className="text-[11px] text-gray-500">{lvl.desc}</span>
                     </div>
-                    {currentLevel === lvl.id && (
-                        <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-purple-100/50 to-transparent pointer-events-none"></div>
-                    )}
                 </button>
             ))}
-        </div>
-
-        {/* Feature Extra */}
-        <div className="bg-yellow-50 border border-yellow-100 p-6 rounded-2xl flex items-start gap-4">
-            <Zap className="w-6 h-6 text-yellow-600 mt-1" />
-            <div>
-                <h4 className="font-bold text-gray-900 text-sm">Modo Turbo (Experimental)</h4>
-                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                    Permite que a IA acesse dados de outras verticais (Ex: usar dados financeiros para sugerir cursos).
-                </p>
-            </div>
-            <div className="ml-auto">
-                <button className="text-xs font-bold bg-white border border-yellow-200 px-3 py-1.5 rounded-lg text-yellow-700 shadow-sm hover:bg-yellow-50 transition-colors">
-                    Ativar
-                </button>
-            </div>
         </div>
     </div>
   );
