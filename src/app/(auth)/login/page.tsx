@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-// CORREÇÃO: Importar da nova estrutura
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Mail, Lock, Loader2, AlertCircle, ArrowLeft, Check, GraduationCap, Briefcase, Rocket } from "lucide-react";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
@@ -17,7 +16,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
-  // CORREÇÃO: Instanciar o cliente
   const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,15 +30,19 @@ export default function LoginPage() {
       });
 
       if (authError) throw authError;
+
+      // [CORREÇÃO] Forçar refresh antes do push para atualizar o estado de autenticação no servidor
+      router.refresh(); 
       router.push("/account"); 
+      
     } catch (err: unknown) {
       console.error("Erro no login:", err);
       let message = "Credenciais inválidas.";
       if (err instanceof Error) message = err.message;
       setError(message);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Só parar o loading se der erro. Se for sucesso, deixa carregando até redirecionar.
     }
+    // Nota: Removi o finally { setLoading(false) } para evitar "flash" do botão voltando ao normal antes da página mudar
   };
 
   return (
@@ -147,12 +149,11 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* --- COLUNA DIREITA: VISUAL (Pure White - Sem Blur) --- */}
+      {/* --- COLUNA DIREITA: VISUAL --- */}
       <div className="hidden lg:flex flex-col relative bg-white items-center justify-start pt-24 p-12 order-2 border-l border-gray-100 overflow-hidden">
          
          <div className="relative z-10 text-center max-w-lg animate-in slide-in-from-right-8 duration-1000">
             
-            {/* Logo Maior - Sombra removida, apenas borda */}
             <div className="w-32 h-32 bg-white border border-gray-100 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 transform hover:scale-105 transition-transform duration-500">
                 <Image src="/assets/images/accont.svg" alt="ID" width={80} height={80} className="object-contain" priority/>
             </div>
@@ -166,7 +167,6 @@ export default function LoginPage() {
                 Conecte seus estudos, gerencie sua produtividade e acesse recursos corporativos. O Facillit Account é sua chave mestra.
             </p>
 
-            {/* Ícones Flutuantes (Flat/Clean) */}
             <div className="flex justify-center gap-6">
                 <div className="flex flex-col items-center gap-3 group cursor-default">
                     <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center hover:border-brand-purple/20 transition-colors">

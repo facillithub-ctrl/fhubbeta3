@@ -4,16 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { UserProfile, UserIntelligence, AIPreferences } from "@/types/account";
 import { revalidatePath } from "next/cache";
 
-// Adicione este schema se ainda não tiver zod, ou faça validação manual simples
-// import { z } from "zod"; 
-
 type ActionResponse = { success: boolean; error?: string };
 
-// [ATUALIZAÇÃO 1] Nova interface para a resposta completa
 interface AccountDataResponse {
   user: UserProfile;
   intelligence: UserIntelligence | null;
-  privacy: any; // Tipar corretamente se possível (ProfilePrivacy)
+  privacy: any; 
 }
 
 export async function getAccountData(): Promise<AccountDataResponse> {
@@ -22,7 +18,7 @@ export async function getAccountData(): Promise<AccountDataResponse> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Não autenticado");
 
-  // [ATUALIZAÇÃO 2] Buscar Perfil E Privacidade (Left Join)
+  // Buscar Perfil E Privacidade
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select(`
@@ -70,24 +66,26 @@ export async function updateProfile(formData: Partial<UserProfile>): Promise<Act
   if (error) return { success: false, error: error.message };
   
   revalidatePath('/account');
-  // Revalida o perfil público também
-  if (formData.username) revalidatePath(`/u/${formData.username}`);
+  
+  // [CORREÇÃO] Usar 'handle' em vez de 'username'
+  if (formData.handle) {
+    revalidatePath(`/u/${formData.handle}`);
+  }
   
   return { success: true };
 }
 
-// [ATUALIZAÇÃO 3] Nova Action para salvar privacidade
 export async function updatePrivacySettings(settings: any): Promise<ActionResponse> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return { success: false, error: "Não autorizado" };
 
-  // Primeiro pegamos o ID do perfil (caso seja diferente do user.id no seu banco, mas geralmente é igual)
+  // [CORREÇÃO] Selecionar 'handle' em vez de 'username'
   const { data: profile } = await supabase
       .from('profiles')
-      .select('id, username')
-      .eq('id', user.id) // Assumindo que profile.id == auth.user.id
+      .select('id, handle')
+      .eq('id', user.id)
       .single();
 
   if (!profile) return { success: false, error: "Perfil não encontrado" };
@@ -106,12 +104,15 @@ export async function updatePrivacySettings(settings: any): Promise<ActionRespon
   if (error) return { success: false, error: error.message };
 
   revalidatePath('/account');
-  revalidatePath(`/u/${profile.username}`);
+  // [CORREÇÃO] Usar 'handle' para revalidar a rota pública
+  if (profile.handle) {
+      revalidatePath(`/u/${profile.handle}`);
+  }
+  
   return { success: true };
 }
 
 export async function updateAiPreferences(preferences: AIPreferences): Promise<ActionResponse> {
-  // ... (código existente mantido igual)
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autorizado" };
