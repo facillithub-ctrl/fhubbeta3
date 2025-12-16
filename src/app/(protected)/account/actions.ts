@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from "@/lib/supabase/server";
-import { UserProfile, UserIntelligence, AIPreferences } from "@/types/account";
+import { UserProfile, UserIntelligence, AIPreferences, ProfilePrivacySettings } from "@/types/account";
 import { revalidatePath } from "next/cache";
 
 type ActionResponse = { success: boolean; error?: string };
@@ -9,7 +9,7 @@ type ActionResponse = { success: boolean; error?: string };
 interface AccountDataResponse {
   user: UserProfile;
   intelligence: UserIntelligence | null;
-  privacy: any; 
+  privacy: ProfilePrivacySettings; 
 }
 
 export async function getAccountData(): Promise<AccountDataResponse> {
@@ -18,30 +18,43 @@ export async function getAccountData(): Promise<AccountDataResponse> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Não autenticado");
 
-  // Buscar Perfil E Privacidade
+  // 1. Busca APENAS o Perfil (sem o join que estava quebrando)
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select(`
-      *,
-      profile_privacy (*) 
-    `)
+    .select('*') // Removemos 'profile_privacy (*)' daqui
     .eq('id', user.id)
     .single();
 
   if (profileError) throw new Error("Erro ao carregar perfil: " + profileError.message);
 
+  // 2. Busca a Privacidade SEPARADAMENTE usando o ID do perfil
+  const { data: privacyDataRaw } = await supabase
+    .from('profile_privacy')
+    .select('*')
+    .eq('profile_id', profile.id)
+    .maybeSingle();
+
+  // 3. Busca a Inteligência
   const { data: intelligence } = await supabase
     .from('user_intelligence')
     .select('*')
     .eq('profile_id', user.id)
     .maybeSingle();
 
-  // Prepara objeto padrão se não existir no banco
-  const privacyData = profile.profile_privacy || {
-      is_public: true,
-      show_email: false,
-      show_location: true,
-      show_education: true
+  // Mapeamento manual dos dados de privacidade (snake_case -> camelCase)
+  // Se não existir registro no banco, usa os valores padrão
+  const privacyData: ProfilePrivacySettings = privacyDataRaw ? {
+      isPublic: privacyDataRaw.is_public,
+      showEmail: privacyDataRaw.show_email,
+      showLocation: privacyDataRaw.show_location,
+      showEducation: privacyDataRaw.show_education,
+      allowMessages: privacyDataRaw.allow_messages ?? true
+  } : {
+      isPublic: true,
+      showEmail: false,
+      showLocation: true,
+      showEducation: true,
+      allowMessages: true
   };
 
   return {
@@ -67,7 +80,6 @@ export async function updateProfile(formData: Partial<UserProfile>): Promise<Act
   
   revalidatePath('/account');
   
-  // [CORREÇÃO] Usar 'handle' em vez de 'username'
   if (formData.handle) {
     revalidatePath(`/u/${formData.handle}`);
   }
@@ -75,13 +87,13 @@ export async function updateProfile(formData: Partial<UserProfile>): Promise<Act
   return { success: true };
 }
 
-export async function updatePrivacySettings(settings: any): Promise<ActionResponse> {
+export async function updatePrivacySettings(settings: ProfilePrivacySettings): Promise<ActionResponse> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return { success: false, error: "Não autorizado" };
 
-  // [CORREÇÃO] Selecionar 'handle' em vez de 'username'
+  // Busca o ID do perfil primeiro
   const { data: profile } = await supabase
       .from('profiles')
       .select('id, handle')
@@ -90,6 +102,7 @@ export async function updatePrivacySettings(settings: any): Promise<ActionRespon
 
   if (!profile) return { success: false, error: "Perfil não encontrado" };
 
+  // Atualiza ou Cria (Upsert) na tabela de privacidade
   const { error } = await supabase
     .from('profile_privacy')
     .upsert({ 
@@ -98,13 +111,13 @@ export async function updatePrivacySettings(settings: any): Promise<ActionRespon
       show_email: settings.showEmail,
       show_location: settings.showLocation,
       show_education: settings.showEducation,
+      allow_messages: settings.allowMessages,
       updated_at: new Date().toISOString()
     }, { onConflict: 'profile_id' });
 
   if (error) return { success: false, error: error.message };
 
   revalidatePath('/account');
-  // [CORREÇÃO] Usar 'handle' para revalidar a rota pública
   if (profile.handle) {
       revalidatePath(`/u/${profile.handle}`);
   }

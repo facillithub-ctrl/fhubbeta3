@@ -1,23 +1,23 @@
-// src/types/account.ts
 import { AddressData } from "./onboarding";
 import { VerificationTier } from "@/shared/ui/verification-badge"; 
 
-// [CORREÇÃO] Adicionado "privacy" nas opções
 export type AccountTabOption = "overview" | "profile" | "security" | "ai" | "privacy";
 
 export type AccountRole = 'individual' | 'student' | 'teacher' | 'institution' | 'admin';
 
-// Interfaces JSONB
 export interface AIPreferences {
   data_sharing: boolean;
   personalization: boolean;
   autonomy_level: 'moderate' | 'intermediate' | 'advanced';
 }
 
-export interface PrivacySettings {
-  allow_ads: boolean;
-  share_data: boolean;
-  public_profile: boolean;
+// [NOVO] Interface alinhada com o frontend
+export interface ProfilePrivacySettings {
+  isPublic: boolean;
+  showEmail: boolean;
+  showLocation: boolean;
+  showEducation: boolean;
+  allowMessages: boolean;
 }
 
 export interface DeviceSettings {
@@ -25,7 +25,6 @@ export interface DeviceSettings {
   notifications: boolean;
 }
 
-// Modelo de Perfil (Profiles Table)
 export interface UserProfile {
   id: string;
   email: string;
@@ -42,7 +41,6 @@ export interface UserProfile {
 
   address: AddressData | null;
   ai_preferences: AIPreferences | null;
-  privacy_settings: PrivacySettings | null;
   device_settings: DeviceSettings | null;
   
   account_type: AccountRole;
@@ -52,7 +50,6 @@ export interface UserProfile {
   created_at: string;
 }
 
-// Modelo de Inteligência
 export interface UserIntelligence {
   profile_id: string;
   cognitive_profile: Record<string, unknown>; 

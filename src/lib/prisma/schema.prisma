@@ -1,49 +1,56 @@
-// Adicione/Atualize no seu schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 
 model Profile {
   id        String   @id @default(uuid())
-  userId    String   @unique
-  username  String   @unique // O "handle" para o deeplink
-  name      String
+  userId    String   @unique @map("user_id")
+  handle    String   @unique // Usei 'handle' para bater com seus tipos
+  name      String   @map("full_name")
   bio       String?
-  avatarUrl String?
+  avatarUrl String?  @map("avatar_url")
   
-  // Relações Sociais
+  // Relações
   followers Follows[] @relation("following")
   following Follows[] @relation("follower")
   
-  // Configurações de Privacidade (1:1)
   privacy   ProfilePrivacy?
-
-  // Conteúdo Futuro
   posts     Post[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("profiles")
 }
 
 model ProfilePrivacy {
-  id        String  @id @default(uuid())
-  profileId String  @unique
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id            String  @id @default(uuid())
+  profileId     String  @unique @map("profile_id")
+  profile       Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  isPublic      Boolean @default(true) // Perfil aparece na busca?
-  showEmail     Boolean @default(false)
-  showLocation  Boolean @default(true)
-  showEducation Boolean @default(true) // Exemplo específico citado
-  allowMessages Boolean @default(true)
+  isPublic      Boolean @default(true)  @map("is_public")
+  showEmail     Boolean @default(false) @map("show_email")
+  showLocation  Boolean @default(true)  @map("show_location")
+  showEducation Boolean @default(true)  @map("show_education")
+  allowMessages Boolean @default(true)  @map("allow_messages")
 
   @@map("profile_privacy")
 }
 
 model Follows {
-  followerId  String
-  followingId String
-  follower    Profile @relation("follower", fields: [followerId], references: [id])
-  following   Profile @relation("following", fields: [followingId], references: [id])
-  createdAt   DateTime @default(now())
+  followerId  String  @map("follower_id")
+  followingId String  @map("following_id")
+  
+  follower    Profile @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   Profile @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
 
   @@id([followerId, followingId])
   @@map("social_follows")
@@ -51,12 +58,14 @@ model Follows {
 
 model Post {
   id        String   @id @default(uuid())
-  profileId String
-  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @map("profile_id")
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
   content   String?
-  mediaUrl  String?
+  mediaUrl  String?  @map("media_url")
   likes     Int      @default(0)
-  createdAt DateTime @default(now())
+  
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("social_posts")
 }

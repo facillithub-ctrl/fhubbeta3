@@ -9,11 +9,12 @@ export default async function AccountPage() {
     return (
       <AccountClientPage 
         initialUser={data.user} 
-        initialIntelligence={data.intelligence} 
+        initialIntelligence={data.intelligence}
+        initialPrivacy={data.privacy}
       />
     );
   } catch (error) {
-    // Se falhar o carregamento (ex: sessão expirada), manda pro login
+    console.error("Erro ao carregar conta:", error);
     redirect("/login");
   }
 }
