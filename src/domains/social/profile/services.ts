@@ -1,69 +1,67 @@
 // src/domains/social/profile/services.ts
-import { db } from "@/lib/prisma/client"; // Assumindo instância do Prisma
-import { PublicProfileDTO, PrivacySettings } from "./types";
+import { createClient } from "@/lib/supabase/server";
+import { PublicProfileDTO } from "./types";
 import { cache } from "react";
 
-const DEFAULT_PRIVACY: PrivacySettings = {
-  showEmail: false,
-  showEducation: true,
-  isIndexable: true,
-};
-
-// Cacheado por request para evitar múltiplas chamadas na renderização
+// Cacheado para evitar duplicate requests na renderização
 export const getPublicProfileByUsername = cache(async (
   username: string, 
   viewerId?: string
 ): Promise<PublicProfileDTO | null> => {
-  const user = await db.user.findUnique({
-    where: { username },
-    include: {
-      socialProfile: true,
-      _count: {
-        select: { followedBy: true, following: true }
-      }
-      
-    }
-  });
+  const supabase = await createClient();
 
-  if (!user) return null;
+  // 1. Buscar o perfil pelo handle (username)
+  // Nota: Ajuste os nomes das colunas conforme seu banco real. 
+  // Baseado no seu código, a tabela é 'profiles'.
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, handle, avatar_url, bio, created_at, email') // Adicione outros campos se existirem
+    .eq('handle', username)
+    .single();
 
-  // Parse Privacy Settings
-  const privacy = { 
-    ...DEFAULT_PRIVACY, 
-    ...(user.socialProfile?.privacySettings as object || {}) 
-  };
+  if (error || !profile) return null;
 
-  // Check Follow Status
+  // 2. Contar seguidores/seguindo (Mock ou tabela real 'follows')
+  // Assumindo uma tabela 'follows' ou 'social_follows'
+  const { count: followersCount } = await supabase
+    .from('social_follows') 
+    .select('*', { count: 'exact', head: true })
+    .eq('following_id', profile.id);
+
+  const { count: followingCount } = await supabase
+    .from('social_follows')
+    .select('*', { count: 'exact', head: true })
+    .eq('follower_id', profile.id);
+
+  // 3. Verificar se o visualizador segue este perfil
   let isFollowing = false;
   if (viewerId) {
-    const followCheck = await db.socialFollow.findUnique({
-      where: {
-        followerId_followingId: {
-          followerId: viewerId,
-          followingId: user.id
-        }
-      }
-    });
+    const { data: followCheck } = await supabase
+      .from('social_follows')
+      .select('follower_id')
+      .eq('follower_id', viewerId)
+      .eq('following_id', profile.id)
+      .maybeSingle();
     isFollowing = !!followCheck;
   }
 
-  // Montagem do DTO com filtro de privacidade
+  // 4. Mapear para DTO (Snake Case -> Camel Case)
   const dto: PublicProfileDTO = {
-    id: user.id,
-    username: user.username,
-    name: user.name,
-    avatarUrl: user.image,
-    bio: user.socialProfile?.bio || null,
-    location: user.socialProfile?.location || null,
-    website: user.socialProfile?.website || null,
-    followersCount: user._count.followedBy,
-    followingCount: user._count.following,
+    id: profile.id,
+    username: profile.handle || username,
+    name: profile.full_name || "Usuário",
+    avatarUrl: profile.avatar_url,
+    bio: profile.bio,
+    location: null, // Adicionar lógica se tiver tabela de endereço
+    website: null,
+    followersCount: followersCount || 0,
+    followingCount: followingCount || 0,
     isFollowing,
-    isOwnProfile: viewerId === user.id,
+    isOwnProfile: viewerId === profile.id,
+    createdAt: profile.created_at,
     
-    // Campos condicionais
-    email: privacy.showEmail ? user.email : null,
-    // educationData: privacy.showEducation ? await getEducationSummary(user.id) : null,
+    // Privacidade básica: só mostra email se for o próprio dono (ou lógica mais complexa)
+    email: (viewerId === profile.id) ? profile.email : null,
   };
 
   return dto;

@@ -1,9 +1,8 @@
 // src/app/(public)/u/[username]/page.tsx
 import { notFound } from "next/navigation";
-import { auth } from "@/core/auth";
+import { createClient } from "@/lib/supabase/server"; // [CORREÇÃO] Auth via Supabase
 import { getPublicProfileByUsername } from "@/domains/social/profile/services";
 import { FollowButton } from "@/domains/social/profile/components/follow-button";
-// Assumindo que o componente enviado pelo usuário foi movido para cá:
 import { ProfileShareCardWrapper } from "@/domains/social/profile/components/share-wrapper"; 
 import { Metadata } from "next";
 
@@ -21,8 +20,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PublicProfilePage({ params }: PageProps) {
-  const session = await auth();
-  const profile = await getPublicProfileByUsername(params.username, session?.user?.id);
+  // [CORREÇÃO] Recuperação de sessão via Supabase
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const viewerId = user?.id;
+
+  const profile = await getPublicProfileByUsername(params.username, viewerId);
 
   if (!profile) return notFound();
 
@@ -73,44 +76,42 @@ export default async function PublicProfilePage({ params }: PageProps) {
               <FollowButton 
                 targetId={profile.id} 
                 initialIsFollowing={profile.isFollowing}
-                isLoggedIn={!!session}
+                isLoggedIn={!!viewerId}
               />
             )}
             
-            {/* Componente de Share baseado no upload do usuário */}
             <ProfileShareCardWrapper profile={profile} />
           </div>
 
-          {/* Dados Condicionais de Privacidade */}
+          {/* Dados de Contato / Privacidade */}
           <div className="space-y-2 border-t border-gray-100 pt-4">
             {profile.location && (
               <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span className="icon-map-pin" /> {profile.location}
+                {/* Ícones simples se não tiver lucide importado aqui, ou use lucide-react */}
+                <span className="text-gray-400">📍</span> {profile.location}
               </div>
             )}
             {profile.email && (
               <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span className="icon-mail" /> {profile.email}
+                <span className="text-gray-400">✉️</span> {profile.email}
               </div>
             )}
             {profile.website && (
-              <a href={profile.website} target="_blank" rel="noopener" className="text-sm text-brand-primary hover:underline">
-                {profile.website}
+              <a href={profile.website} target="_blank" rel="noopener" className="text-sm text-brand-primary hover:underline flex items-center gap-2">
+                <span className="text-gray-400">🔗</span> {profile.website}
               </a>
             )}
           </div>
         </aside>
 
-        {/* Coluna Direita: Conteúdo (Stories, Posts, Resultados) */}
+        {/* Coluna Direita: Conteúdo */}
         <section className="flex-1">
-           {/* Tabs de Navegação Interna do Perfil */}
            <div className="flex gap-6 border-b border-gray-100 mb-6">
              <button className="pb-3 border-b-2 border-brand-primary font-medium text-sm">Visão Geral</button>
              <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-sm hover:text-gray-600 transition-colors">Education</button>
              <button className="pb-3 border-b-2 border-transparent text-gray-400 font-medium text-sm hover:text-gray-600 transition-colors">Stories</button>
            </div>
 
-           {/* Área de Conteúdo Vazio ou Dados */}
            <div className="bg-gray-50 rounded-xl p-8 text-center border border-dashed border-gray-200">
              <p className="text-gray-500 text-sm">Nenhuma atividade recente para exibir.</p>
            </div>
