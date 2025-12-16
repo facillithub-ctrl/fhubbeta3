@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { HelpCircle, ChevronDown } from "lucide-react";
+import { HelpCircle, ChevronDown, Sparkles } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { OnboardingData } from "@/types/onboarding";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
+import { completeOnboarding } from "./actions";
 
 // Componentes dos Passos
 import StepIdentity from "./_components/step-identity";
@@ -27,13 +28,15 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Refs e States de UI
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollArrow, setShowScrollArrow] = useState(false);
 
   const [formData, setFormData] = useState<OnboardingData>({
     handle: "",
     profileImage: null,
+    pronouns: "",
+    gender: "",
+    sexuality: "",
     address: null,
     profileTypes: [],
     selectedModules: [],
@@ -42,52 +45,67 @@ export default function OnboardingPage() {
     permissions: { recommendations: true, dataAnalysis: true }
   });
 
-  const updateData = <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
+  // useCallback corrige problemas de referência e tipagem ao passar para filhos
+  const updateData = useCallback(<K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
   const nextStep = () => {
-    if (scrollRef.current) {
-        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     setStep((prev) => prev + 1);
   };
 
   const prevStep = () => {
-    if (scrollRef.current) {
-        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     setStep((prev) => prev - 1);
   };
 
   const finishOnboarding = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/account");
-    }, 2500);
+    try {
+        const result = await completeOnboarding(formData);
+        
+        if (result.success) {
+            router.push("/account");
+        } else {
+            alert("Erro ao salvar dados: " + result.error);
+            setIsLoading(false);
+        }
+    } catch (error) {
+        console.error("Erro critico:", error);
+        alert("Erro de conexão. Tente novamente.");
+        setIsLoading(false);
+    }
   };
 
-  // Lógica da Seta de Scroll Segura
-  const handleScroll = () => {
+  // Lógica de Scroll otimizada para evitar loops de renderização
+  const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
-    
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-    const hasMoreContent = scrollHeight > clientHeight;
-    // Tolerância de 10px para considerar que chegou no fim
-    const isAtBottom = scrollHeight - scrollTop <= clientHeight + 10;
     
-    setShowScrollArrow(hasMoreContent && !isAtBottom);
-  };
+    const hasMoreContent = scrollHeight > clientHeight;
+    const isAtBottom = scrollHeight - scrollTop <= clientHeight + 10;
+    const shouldShow = hasMoreContent && !isAtBottom;
 
-useEffect(() => {
-  requestAnimationFrame(() => {
+    // Só atualiza o estado se o valor mudar
+    setShowScrollArrow(prev => (prev !== shouldShow ? shouldShow : prev));
+  }, []);
+
+  useEffect(() => {
+    const div = scrollRef.current;
+    if (!div) return;
+
+    // Checagem inicial
     handleScroll();
-  });
 
-  window.addEventListener("resize", handleScroll);
-  return () => window.removeEventListener("resize", handleScroll);
-}, [step]); // Re-executa quando muda o passo
+    div.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+    
+    return () => {
+        div.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+    };
+  }, [step, handleScroll]); // Recria listeners quando o passo muda (conteúdo muda)
 
   const currentInfo = useMemo(() => {
     switch (step) {
@@ -97,11 +115,11 @@ useEffect(() => {
             text: "Seu @handle será sua chave mestra no ecossistema Facillit. Escolha com sabedoria.",
             highlight: "Dica: Nomes curtos são mais valiosos."
         };
-     case 2:
+      case 2:
         return {
-            title: "Endereço com segurança",
-            text: "Usamos seu endereço apenas para personalizar serviços e garantir entregas corretas. Ele nunca é exibido publicamente.",
-            highlight: "Dados protegidos e sob seu controle."
+            title: "Contexto Regional",
+            text: "A localização ajusta automaticamente o currículo (BNCC), feriados locais e fuso horário. Seus dados exatos permanecem privados.",
+            highlight: "Criptografia de ponta a ponta."
         };
       case 3:
         return {
@@ -131,7 +149,7 @@ useEffect(() => {
       {/* --- ESQUERDA: FORMULÁRIO (60%) --- */}
       <div className="w-full lg:w-[60%] flex flex-col relative z-10 h-[100dvh] lg:h-screen border-r border-gray-100 bg-white">
         
-        {/* Header Fixo */}
+        {/* Header */}
         <div className="px-6 sm:px-10 py-5 border-b border-gray-100 flex items-center justify-between bg-white z-30 shrink-0">
              <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center text-white font-bold shadow-sm text-sm">F</div>
@@ -148,19 +166,17 @@ useEffect(() => {
         {/* Scroll Area */}
         <div 
             ref={scrollRef}
-            onScroll={handleScroll}
             className="flex-1 overflow-y-auto scrollbar-hide relative pb-10"
         >
             <div className="max-w-[580px] mx-auto p-6 sm:p-12 py-8 animate-in slide-in-from-bottom-4 duration-500">
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8 hidden lg:block">
-                    {currentInfo.title}
-                </h1>
-                
-                {/* Mobile Context */}
                 <div className="lg:hidden mb-8 p-4 bg-gray-50/50 rounded-xl border border-gray-100">
                     <h2 className="font-bold text-sm text-gray-900">{currentInfo.title}</h2>
                     <p className="text-xs text-gray-500 mt-1">{currentInfo.text}</p>
                 </div>
+
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8 hidden lg:block">
+                    {currentInfo.title}
+                </h1>
 
                 <div className="min-h-[400px]">
                     {step === 1 && <StepIdentity data={formData} update={updateData} onNext={nextStep} />}
@@ -176,11 +192,7 @@ useEffect(() => {
             </div>
         </div>
 
-        {/* Seta Indicadora */}
-        <div className={cn(
-            "absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-500 flex flex-col items-center gap-1 z-20",
-            showScrollArrow ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-        )}>
+        <div className={cn("absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-500 flex flex-col items-center gap-1 z-20", showScrollArrow ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
             <span className="text-[9px] font-bold text-gray-400 bg-white/90 px-3 py-1 rounded-full shadow-sm backdrop-blur border border-gray-100">
                 Role para continuar
             </span>

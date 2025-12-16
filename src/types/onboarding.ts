@@ -12,7 +12,6 @@ export interface AddressData {
   siafi?: string;
 }
 
-// Removemos o 'null' daqui para facilitar a tipagem dos arrays
 export type ProfileType = 
   | "education" 
   | "individuals" 
@@ -25,11 +24,14 @@ export type AiLevel = "moderate" | "intermediate" | "advanced";
 export interface OnboardingData {
   handle: string;
   profileImage: string | null;
+  
+  // Novos Campos de Identidade
+  pronouns: string;
+  gender: string;
+  sexuality: string;
+  
   address: AddressData | null;
-  
-  // MUDANÇA: Array de strings para múltipla seleção
   profileTypes: ProfileType[]; 
-  
   selectedModules: string[];
   aiLevel: AiLevel;
   deviceTrusted: boolean;

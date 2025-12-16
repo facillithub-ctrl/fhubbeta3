@@ -1,4 +1,5 @@
 import { AddressData } from "./onboarding";
+import { VerificationTier } from "@/shared/ui/verification-badge"; // Importe do novo arquivo
 
 // Navegação
 export type AccountTabOption = "overview" | "profile" | "security" | "ai";
@@ -26,7 +27,7 @@ export interface DeviceSettings {
 // Modelo de Perfil (Profiles Table)
 export interface UserProfile {
   id: string;
-  email: string; // Vem de auth.users, mas unificado aqui para facilitar
+  email: string;
   facillit_id: string | null;
   handle: string | null;
   full_name: string | null;
@@ -36,6 +37,9 @@ export interface UserProfile {
   gender: string | null;
   pronouns: string | null;
   
+  // Novo Campo
+  verification_tier: VerificationTier; 
+
   address: AddressData | null;
   ai_preferences: AIPreferences | null;
   privacy_settings: PrivacySettings | null;

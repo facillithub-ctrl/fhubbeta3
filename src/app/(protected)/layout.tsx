@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-// CORREÇÃO: Importar da nova estrutura
 import { createClient } from "@/lib/supabase/client";
-import { Sidebar } from "@/shared/ui/sidebar";
 import { Loader2 } from "lucide-react";
 
 export default function ProtectedLayout({
@@ -14,7 +12,6 @@ export default function ProtectedLayout({
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  // CORREÇÃO: Instanciar o cliente
   const supabase = createClient();
 
   useEffect(() => {
@@ -38,10 +35,10 @@ export default function ProtectedLayout({
     );
   }
 
+  // Removemos a Sidebar global daqui
   return (
     <div className="flex h-screen w-full bg-white">
-      <Sidebar />
-      <main className="flex-1 overflow-auto bg-gray-50/30">
+      <main className="flex-1 overflow-auto">
         {children}
       </main>
     </div>

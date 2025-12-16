@@ -1,7 +1,8 @@
 "use client";
 
 import { UserProfile, UserIntelligence, AccountTabOption } from "@/types/account";
-import { ArrowRight, User, ShieldCheck, Zap, Activity, AlertCircle } from "lucide-react";
+import { User, Lock, CreditCard, ChevronRight, LayoutGrid } from "lucide-react";
+import { VerificationBadge } from "@/shared/ui/verification-badge";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 
 interface Props {
@@ -12,86 +13,113 @@ interface Props {
 
 export default function OverviewTab({ user, intelligence, setTab }: Props) {
   
-  const calculateCompletion = () => {
-    let score = 0;
-    if (user.full_name) score += 25;
-    if (user.avatar_url) score += 25;
-    if (user.bio) score += 25;
-    if (user.onboarding_completed) score += 25;
-    return score;
-  };
-
-  const completion = calculateCompletion();
-
   return (
-    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+    <div className="space-y-10 animate-in fade-in duration-700">
         
-        {/* Header Profile */}
-        <div className="flex items-center gap-5 mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center shrink-0">
-                {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="User" className="w-full h-full object-cover" />
-                ) : (
-                    <span className="text-3xl font-bold text-gray-300">{user.full_name?.charAt(0) ?? "U"}</span>
-                )}
-            </div>
-            <div>
-                <h2 className="text-2xl font-extrabold text-gray-900">{user.full_name ?? "Usuário"}</h2>
-                <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono font-bold">@{user.handle ?? "sem_handle"}</span>
-                    <span className="text-xs text-gray-400 border border-gray-100 px-2 py-0.5 rounded">ID: {user.facillit_id || 'N/A'}</span>
+        {/* --- HERO SECTION --- */}
+        <div className="flex flex-col items-center text-center pb-8 border-b border-gray-100">
+            <div className="mb-6 relative">
+                {/* Foto de Perfil Limpa */}
+                <div className="w-28 h-28 rounded-full p-1 bg-white border border-gray-200 shadow-sm overflow-hidden mx-auto">
+                    {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="User" className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-400">
+                            {user.full_name?.charAt(0) ?? "U"}
+                        </div>
+                    )}
                 </div>
+                {/* Removido o ícone do Account daqui conforme pedido */}
+            </div>
+
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                Bem-vindo, {user.full_name?.split(' ')[0]}
+            </h1>
+            
+            <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="text-sm font-medium text-gray-500">@{user.handle}</span>
+                <VerificationBadge tier={user.verification_tier || 'none'} />
             </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-green-600 font-bold text-xs uppercase tracking-wide">
-                    <ShieldCheck className="w-4 h-4" /> Conta
-                </div>
-                <span className="text-lg font-bold text-gray-900 capitalize">{user.account_type}</span>
-            </div>
-
-            <div className="p-5 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-brand-purple font-bold text-xs uppercase tracking-wide">
-                    <Zap className="w-4 h-4" /> Plano
-                </div>
-                <span className="text-lg font-bold text-gray-900">Basic</span>
-            </div>
-
-            <div className="p-5 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-wide">
-                    <Activity className="w-4 h-4" /> Perfil
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${completion}%` }}></div>
+        {/* --- GRID DE CARDS --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Card 1: Privacidade */}
+            <div 
+                onClick={() => setTab("security")}
+                className="group p-6 rounded-3xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden"
+            >
+                <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                        <Lock className="w-6 h-6" />
                     </div>
-                    <span className="text-sm font-bold text-gray-900">{completion}%</span>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-600 transition-colors" />
                 </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Privacidade & Segurança</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                    Gerencie sua senha, verificação em duas etapas e dispositivos conectados.
+                </p>
+                <div className="mt-4 text-xs font-bold text-blue-600 group-hover:underline">Revisar configurações</div>
             </div>
+
+            {/* Card 2: Perfil */}
+            <div 
+                onClick={() => setTab("profile")}
+                className="group p-6 rounded-3xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden"
+            >
+                <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl">
+                        <User className="w-6 h-6" />
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-600 transition-colors" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Informações Pessoais</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                    Atualize sua foto, bio, pronomes e como você aparece no Facillit Hub.
+                </p>
+                <div className="mt-4 text-xs font-bold text-purple-600 group-hover:underline">Gerenciar perfil</div>
+            </div>
+
+            {/* Card 3: Dados & IA */}
+            <div 
+                onClick={() => setTab("ai")}
+                className="group p-6 rounded-3xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden"
+            >
+                <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-yellow-50 text-yellow-600 rounded-2xl">
+                        <LayoutGrid className="w-6 h-6" />
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-yellow-600 transition-colors" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Dados & Inteligência</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                    Controle como a I.A. personaliza sua experiência e seus dados de aprendizado.
+                </p>
+                <div className="mt-4 text-xs font-bold text-yellow-600 group-hover:underline">Calibrar I.A.</div>
+            </div>
+
+            {/* Card 4: Assinatura */}
+            <div className="group p-6 rounded-3xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden">
+                <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-green-50 text-green-600 rounded-2xl">
+                        <CreditCard className="w-6 h-6" />
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-green-600 transition-colors" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Assinaturas</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                    Visualize seu plano atual, histórico de pagamentos e métodos de cobrança.
+                </p>
+                <div className="mt-4 text-xs font-bold text-green-600 group-hover:underline">Gerenciar plano</div>
+            </div>
+
         </div>
 
-        {/* Action Button */}
-        <button 
-            onClick={() => setTab("profile")}
-            className="w-full flex items-center justify-between p-5 rounded-2xl border border-gray-100 hover:border-brand-purple/40 hover:bg-gray-50/80 transition-all group shadow-sm hover:shadow-md"
-        >
-            <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 group-hover:text-brand-purple group-hover:border-brand-purple transition-all">
-                    <User className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                    <h4 className="text-sm font-bold text-gray-900 group-hover:text-brand-purple transition-colors">Editar Informações</h4>
-                    <p className="text-xs text-gray-500">Atualize sua foto, bio e dados pessoais.</p>
-                </div>
+        <div className="pt-8 opacity-80 flex justify-center">
+            <div className="max-w-md w-full">
+                <SecureEnvironmentCard />
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-brand-purple transition-colors" />
-        </button>
-
-        <div className="pt-4 opacity-80">
-            <SecureEnvironmentCard />
         </div>
     </div>
   );
