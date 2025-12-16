@@ -5,94 +5,104 @@ import {
   Fingerprint,
   Globe,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
 
-/**
- * SecureEnvironmentCard
- * Objetivo UX:
- * - Construir confiança imediata (trust first)
- * - Explicar o valor do ID em 5 segundos
- * - Ser escaneável, elegante e silenciosamente premium
- */
 export function SecureEnvironmentCard() {
   return (
     <section
       aria-label="Ambiente seguro FacillIt"
-      className="relative w-full rounded-3xl border border-gray-100 bg-white/80 backdrop-blur-xl p-6 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]"
+      className="
+        w-full
+        rounded-2xl
+        border
+        border-gray-200
+        bg-white
+        p-5
+        shadow-sm
+        sm:p-6
+      "
     >
-      {/* Glow sutil de fundo */}
-      <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-purple/5 via-transparent to-brand-green/5" />
-
       {/* Header */}
-      <header className="relative flex items-start gap-4 pb-5 mb-6 border-b border-gray-100">
+      <header className="flex items-start gap-4 pb-4 border-b border-gray-200">
         {/* Logo */}
-        <div className="relative h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-brand-purple to-brand-green p-[1px]">
-          <div className="flex h-full w-full items-center justify-center rounded-[11px] bg-white">
-            <span className="text-xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-brand-purple/70">
-              ID
-            </span>
-          </div>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50">
+          <span className="text-sm font-extrabold tracking-tight text-brand-purple">
+            ID
+          </span>
         </div>
 
         {/* Título */}
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-gray-900">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900">
               FacillIt Account
             </h3>
-            <span className="rounded-md border border-green-200 bg-green-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-green">
-              Oficial
+
+            <span className="rounded-md border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-green">
+              Conta oficial
             </span>
           </div>
 
-          <p className="mt-1 text-xs leading-relaxed text-gray-500">
-            Um único ID para todo o acossitema <b>Facillit Hub</b>.
-            Menos senhas, mais controle e portabilidade total.
+          <p className="mt-1 text-xs leading-relaxed text-gray-600">
+            Um único identificador seguro para acessar todo o ecossistema
+            <strong> FacillIt Hub</strong>, com controle centralizado,
+            menos senhas e maior proteção dos seus dados.
           </p>
         </div>
       </header>
 
       {/* Conteúdo */}
-      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Status */}
-        <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white text-brand-green shadow-sm">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gray-200 text-brand-green">
             <ShieldCheck className="h-4 w-4" />
           </div>
+
           <div>
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-400">
-              Status
+            <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+              Status de segurança
             </span>
-            <span className="text-xs font-bold text-gray-900">
-              Ambiente Seguro
+            <span className="text-sm font-semibold text-gray-900">
+              Ambiente protegido e validado
             </span>
           </div>
         </div>
 
         {/* Selos */}
-        <div className="flex h-full items-center justify-start sm:justify-end gap-3">
-          <SecurityBadge icon={Lock} label="SSL" />
-          <Divider />
-          <SecurityBadge icon={Globe} label="Global" />
-          <Divider />
-          <SecurityBadge icon={Fingerprint} label="Unique" />
+        <div className="flex flex-wrap items-center justify-start gap-4 sm:justify-end">
+          <SecurityBadge icon={Lock} label="Criptografia SSL" />
+          <SecurityBadge icon={Globe} label="Padrão Global" />
+          <SecurityBadge icon={Fingerprint} label="Identidade Única" />
         </div>
       </div>
 
       {/* Rodapé */}
-      <footer className="relative mt-6 flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-brand-green" />
-          <p className="text-[11px] font-medium text-gray-400">
-            Criptografia ponta a ponta e conformidade com padrões globais.
+      <footer className="mt-6 flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-2">
+          <CheckCircle2 className="h-4 w-4 text-brand-green mt-0.5" />
+          <p className="text-xs leading-relaxed text-gray-600">
+            Seus dados são protegidos com criptografia ponta a ponta e seguem
+            normas internacionais de segurança e privacidade.
           </p>
         </div>
 
-        <span className="flex items-center gap-1 text-[11px] font-semibold text-brand-purple">
+        <button
+          type="button"
+          className="
+            inline-flex
+            items-center
+            gap-1
+            text-xs
+            font-semibold
+            text-brand-purple
+            hover:underline
+          "
+        >
           Saiba mais
           <ArrowRight className="h-3 w-3" />
-        </span>
+        </button>
       </footer>
     </section>
   );
@@ -108,20 +118,11 @@ function SecurityBadge({
   label: string;
 }) {
   return (
-    <div
-      className="group flex flex-col items-center gap-1"
-      aria-label={label}
-    >
-      <div className="rounded-lg p-2 text-gray-400 transition-all group-hover:bg-purple-50 group-hover:text-brand-purple">
-        <Icon className="h-4 w-4" />
-      </div>
-      <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
+    <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+      <Icon className="h-4 w-4 text-gray-500" />
+      <span className="text-[11px] font-semibold text-gray-700">
         {label}
       </span>
     </div>
   );
-}
-
-function Divider() {
-  return <div className="h-6 w-px bg-gray-200" />;
 }
