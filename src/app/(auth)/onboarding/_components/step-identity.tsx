@@ -13,52 +13,63 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Manipulação de Upload de Imagem
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        update("profileImage", reader.result as string);
-      };
+      reader.onloadend = () => update("profileImage", reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
-  // Manipulação do Handle
   const handleHandleChange = (val: string) => {
     const formatted = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
     update("handle", formatted);
     
-    // Reset visual imediato - seguro aqui pois é um event handler
-    setAvailable(null); 
-    setMessage("");
+    // CORREÇÃO: O estado de loading deve ser setado aqui, na interação do usuário
+    if (formatted.length >= 3) {
+        setChecking(true);
+        setAvailable(null);
+        setMessage("");
+    } else {
+        setChecking(false);
+        setAvailable(null);
+        setMessage("");
+    }
   };
 
-  // Effect APENAS para a verificação assíncrona (Debounce)
+  // Effect APENAS para o Debounce da resposta (Side Effect puro)
   useEffect(() => {
-  if (!data.handle || data.handle.length < 3) return;
+    // Se não tiver handle ou for muito curto, cancela e não faz nada
+    // O reset visual já foi feito no handleHandleChange
+    if (!data.handle || data.handle.length < 3) {
+        setChecking(false);
+        return;
+    }
 
-  setChecking(true); // 👈 warning aqui
-
+    let isMounted = true;
     
     const timer = setTimeout(() => {
-      setChecking(false);
-      
       // Simulação de verificação de API
       const isTaken = data.handle === "admin" || data.handle === "root";
       
-      if (!isTaken) {
-        setAvailable(true);
-        setMessage(compliments[Math.floor(Math.random() * compliments.length)]);
-      } else {
-        setAvailable(false);
-        setMessage("Este handle já está em uso.");
+      if (isMounted) {
+        setChecking(false); // Desliga o loading apenas quando a resposta chega
+        if (!isTaken) {
+          setAvailable(true);
+          setMessage(compliments[Math.floor(Math.random() * compliments.length)]);
+        } else {
+          setAvailable(false);
+          setMessage("Este handle já está em uso.");
+        }
       }
     }, 800);
 
-    return () => clearTimeout(timer);
-  }, [data.handle]);
+    return () => {
+        isMounted = false;
+        clearTimeout(timer);
+    };
+  }, [data.handle]); // Dependência única: handle
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -141,7 +152,7 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
 
       <button 
         onClick={onNext}
-        disabled={!available}
+        disabled={!available || checking}
         className="w-full mt-6 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
       >
         Confirmar Identidade
