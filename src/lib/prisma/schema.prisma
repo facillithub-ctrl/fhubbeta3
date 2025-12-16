@@ -1,0 +1,50 @@
+// src/lib/prisma/schema.prisma
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  username      String    @unique // Essencial para deeplinks
+  email         String    @unique
+  image         String?
+  
+  // Relação 1:1 com Perfil Social
+  socialProfile SocialProfile?
+
+  // Grafo de seguidores
+  followedBy    SocialFollow[] @relation("following")
+  following     SocialFollow[] @relation("follower")
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SocialProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio         String?
+  location    String?
+  website     String?
+  
+  // Configurações de Privacidade (JSONB no Postgres)
+  // Ex: { "showEmail": false, "showEducation": true, "allowSearch": true }
+  privacySettings Json @default("{}")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SocialFollow {
+  followerId  String
+  followingId String
+  
+  follower    User @relation("follower", fields: [followerId], references: [id])
+  following   User @relation("following", fields: [followingId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
