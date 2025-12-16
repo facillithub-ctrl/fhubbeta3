@@ -6,7 +6,7 @@ export type PublicProfileDTO = {
   name: string;     // Mapeado de 'full_name'
   avatarUrl: string | null; // Mapeado de 'avatar_url'
   bio: string | null;
-  location: string | null; // Assumindo que existe no address ou similar
+  location: string | null; 
   website: string | null;
   
   // Stats
@@ -17,7 +17,15 @@ export type PublicProfileDTO = {
   isFollowing: boolean;
   isOwnProfile: boolean;
   
-  createdAt: string; // Data em string ISO para serialização
+  createdAt: string; 
+  
+  // [CORREÇÃO] Adicionando campos de privacidade que a página exige
+  isPublic: boolean;
+  privacy?: {
+    showEmail: boolean;
+    showLocation: boolean;
+    showEducation: boolean;
+  };
   
   // Dados sensíveis/condicionais
   email?: string | null;

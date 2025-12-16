@@ -10,19 +10,23 @@ export const getPublicProfileByUsername = cache(async (
 ): Promise<PublicProfileDTO | null> => {
   const supabase = await createClient();
 
-  // 1. Buscar o perfil pelo handle (username)
-  // Nota: Ajuste os nomes das colunas conforme seu banco real. 
-  // Baseado no seu código, a tabela é 'profiles'.
+  // 1. Buscar o perfil pelo handle
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, full_name, handle, avatar_url, bio, created_at, email') // Adicione outros campos se existirem
+    .select('id, full_name, handle, avatar_url, bio, created_at, email')
     .eq('handle', username)
     .single();
 
   if (error || !profile) return null;
 
-  // 2. Contar seguidores/seguindo (Mock ou tabela real 'follows')
-  // Assumindo uma tabela 'follows' ou 'social_follows'
+  // [CORREÇÃO] 1.5 Buscar configurações de privacidade
+  const { data: privacyData } = await supabase
+    .from('profile_privacy')
+    .select('*')
+    .eq('profile_id', profile.id)
+    .maybeSingle();
+
+  // 2. Contar seguidores/seguindo
   const { count: followersCount } = await supabase
     .from('social_follows') 
     .select('*', { count: 'exact', head: true })
@@ -45,6 +49,9 @@ export const getPublicProfileByUsername = cache(async (
     isFollowing = !!followCheck;
   }
 
+  // Define padrão como público se não houver registro de privacidade
+  const isPublicProfile = privacyData?.is_public ?? true;
+
   // 4. Mapear para DTO (Snake Case -> Camel Case)
   const dto: PublicProfileDTO = {
     id: profile.id,
@@ -52,7 +59,7 @@ export const getPublicProfileByUsername = cache(async (
     name: profile.full_name || "Usuário",
     avatarUrl: profile.avatar_url,
     bio: profile.bio,
-    location: null, // Adicionar lógica se tiver tabela de endereço
+    location: null, // Pode integrar com tabela de endereços futuramente
     website: null,
     followersCount: followersCount || 0,
     followingCount: followingCount || 0,
@@ -60,7 +67,14 @@ export const getPublicProfileByUsername = cache(async (
     isOwnProfile: viewerId === profile.id,
     createdAt: profile.created_at,
     
-    // Privacidade básica: só mostra email se for o próprio dono (ou lógica mais complexa)
+    // [CORREÇÃO] Preenchendo os novos campos
+    isPublic: isPublicProfile,
+    privacy: privacyData ? {
+        showEmail: privacyData.show_email,
+        showLocation: privacyData.show_location,
+        showEducation: privacyData.show_education
+    } : undefined,
+    
     email: (viewerId === profile.id) ? profile.email : null,
   };
 
