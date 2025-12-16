@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GraduationCap, Briefcase, Building2, Rocket, Heart, Check, Info, LucideIcon } from "lucide-react";
+import { GraduationCap, Briefcase, Building2, Rocket, Heart, Check, HelpCircle, LucideIcon } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { StepProps, ProfileType } from "@/types/onboarding";
 
@@ -14,16 +14,16 @@ type ProfileOption = {
 };
 
 const profiles: ProfileOption[] = [
-  { id: "education", title: "Education", icon: GraduationCap, desc: "Estudante ou Professor", details: "Acesso a LMS, Biblioteca Digital, Notas e IA Tutora." },
-  { id: "schools", title: "Schools", icon: Building2, desc: "Gestão Escolar", details: "ERP Escolar, Gestão de Matrículas e Secretaria Digital." },
-  { id: "startups", title: "Startups", icon: Rocket, desc: "Fundador ou Time", details: "Frameworks de Growth, CRM e conexão com investidores." },
-  { id: "enterprise", title: "Enterprise", icon: Briefcase, desc: "Colaborador ou RH", details: "Portal do Colaborador, Benefícios e PDI." },
-  { id: "individuals", title: "Individuals", icon: Heart, desc: "Produtividade Pessoal", details: "Gestão de Tarefas, Hábitos e Finanças." },
+  { id: "education", title: "Education", icon: GraduationCap, desc: "Estudante ou Professor", details: "Acesso completo a ferramentas de aprendizado, notas e IA tutora." },
+  { id: "schools", title: "Schools", icon: Building2, desc: "Gestão Escolar", details: "Painel administrativo para matrículas, financeiro e secretaria." },
+  { id: "startups", title: "Startups", icon: Rocket, desc: "Fundador ou Time", details: "Ferramentas de Growth, CRM e conexão com investidores." },
+  { id: "enterprise", title: "Enterprise", icon: Briefcase, desc: "Colaborador ou RH", details: "Portal corporativo, holerites e benefícios flexíveis." },
+  { id: "individuals", title: "Individuals", icon: Heart, desc: "Produtividade Pessoal", details: "Planner pessoal, gestão de tarefas e finanças." },
 ];
 
 export default function StepProfile({ data, update, onNext, onBack }: StepProps) {
-  // Estado para controlar qual popup está aberto
-  const [activePopup, setActivePopup] = useState<ProfileType | null>(null);
+  // Estado para controlar quais explicações estão expandidas
+  const [expandedId, setExpandedId] = useState<ProfileType | null>(null);
 
   const toggleProfile = (id: ProfileType) => {
     const current = data.profileTypes || [];
@@ -34,29 +34,35 @@ export default function StepProfile({ data, update, onNext, onBack }: StepProps)
     }
   };
 
+  const toggleInfo = (e: React.MouseEvent, id: ProfileType) => {
+    e.stopPropagation(); // Evita selecionar o card ao clicar no ?
+    setExpandedId(expandedId === id ? null : id);
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 relative">
+    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
       
       <div className="space-y-3">
          <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Selecione um ou mais</label>
          <div className="grid grid-cols-1 gap-3">
             {profiles.map((p) => {
                 const isSelected = data.profileTypes?.includes(p.id);
+                const isExpanded = expandedId === p.id;
+
                 return (
                     <div 
                         key={p.id} 
-                        className="relative group"
-                        onMouseEnter={() => setActivePopup(p.id)}
-                        onMouseLeave={() => setActivePopup(null)}
+                        className={cn(
+                            "relative rounded-xl border transition-all duration-300 bg-white",
+                            isSelected 
+                                ? "border-brand-purple shadow-[0_0_0_1px_#42047e]" 
+                                : "border-gray-200 hover:border-gray-300"
+                        )}
                     >
-                        <button
+                        {/* Área Clicável Principal */}
+                        <div 
                             onClick={() => toggleProfile(p.id)}
-                            className={cn(
-                                "w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 text-left relative z-10",
-                                isSelected 
-                                    ? "border-brand-purple bg-white shadow-[0_0_0_1px_#42047e]" 
-                                    : "border-gray-200 bg-white hover:border-gray-300"
-                            )}
+                            className="flex items-center gap-4 p-4 cursor-pointer select-none"
                         >
                             <div className={cn("p-3 rounded-lg shrink-0 transition-colors", isSelected ? "bg-brand-purple text-white" : "bg-gray-50 text-gray-400")}>
                                 <p.icon className="w-5 h-5" />
@@ -67,48 +73,40 @@ export default function StepProfile({ data, update, onNext, onBack }: StepProps)
                                 <p className="text-[11px] text-gray-500 mt-0.5">{p.desc}</p>
                             </div>
 
-                            <div className={cn("w-5 h-5 rounded-full border flex items-center justify-center transition-all", isSelected ? "border-brand-purple bg-brand-purple" : "border-gray-200")}>
-                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                            <div className="flex items-center gap-3">
+                                {/* Botão de Informação (?) */}
+                                <button 
+                                    onClick={(e) => toggleInfo(e, p.id)}
+                                    className={cn(
+                                        "w-6 h-6 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100",
+                                        isExpanded ? "text-brand-purple bg-purple-50" : "text-gray-300"
+                                    )}
+                                >
+                                    <HelpCircle className="w-4 h-4" />
+                                </button>
+
+                                {/* Checkbox Visual */}
+                                <div className={cn("w-5 h-5 rounded-full border flex items-center justify-center transition-all", isSelected ? "border-brand-purple bg-brand-purple" : "border-gray-200")}>
+                                    {isSelected && <Check className="w-3 h-3 text-white" />}
+                                </div>
                             </div>
-                        </button>
+                        </div>
+
+                        {/* Texto Explicativo Inline (Expansível) */}
+                        <div 
+                            className={cn(
+                                "overflow-hidden transition-all duration-300 ease-in-out border-t border-dashed border-gray-100 mx-4",
+                                isExpanded ? "max-h-20 opacity-100 py-3" : "max-h-0 opacity-0 py-0 border-none"
+                            )}
+                        >
+                            <p className="text-[11px] text-gray-500 leading-relaxed pl-1">
+                                <span className="font-bold text-gray-700">Inclui:</span> {p.details}
+                            </p>
+                        </div>
                     </div>
                 )
             })}
          </div>
-      </div>
-
-      {/* POPUP FIXADO GLOBAL (Renderizado fora do map para evitar z-index issues) */}
-      {/* Usamos fixed para garantir que fique em cima de TUDO */}
-      {activePopup && (
-          <div className="hidden xl:block fixed z-[9999] p-5 bg-gray-900 text-white rounded-2xl shadow-2xl w-72 animate-in fade-in slide-in-from-left-2 duration-200 pointer-events-none border border-gray-800"
-                style={{ 
-                    // Posicionamento estratégico: À direita da área de formulário
-                    left: "calc(50vw + 20px)", 
-                    top: "50%",
-                    transform: "translateY(-50%)"
-                }}
-          >
-            {(() => {
-                const p = profiles.find(pr => pr.id === activePopup);
-                if(!p) return null;
-                return (
-                    <>
-                        <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-800">
-                             <div className="p-2 rounded-lg bg-gray-800"><p.icon className="w-4 h-4 text-brand-purple"/></div>
-                             <span className="font-bold text-sm">{p.title} Hub</span>
-                        </div>
-                        <h4 className="font-bold text-[10px] uppercase tracking-widest text-gray-500 mb-1">O que inclui:</h4>
-                        <p className="text-xs text-gray-300 leading-relaxed">{p.details}</p>
-                    </>
-                )
-            })()}
-          </div>
-      )}
-
-      {/* Mobile Hint */}
-      <div className="xl:hidden mt-2 p-3 bg-blue-50 text-blue-800 text-[10px] rounded-lg border border-blue-100 flex gap-2">
-         <Info className="w-4 h-4 shrink-0" />
-         <p>Toque para selecionar. Múltiplas escolhas habilitam mais funcionalidades.</p>
       </div>
 
       <div className="flex gap-4 pt-6">

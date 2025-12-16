@@ -13,39 +13,42 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Manipulação de Upload de Imagem (DataURL)
+  // Manipulação de Upload de Imagem
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Atualiza o estado global com a string base64 da imagem
         update("profileImage", reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Manipulação do Input de Handle (com reset síncrono para evitar erro de setState)
+  // Manipulação do Handle
   const handleHandleChange = (val: string) => {
     const formatted = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
     update("handle", formatted);
     
-    // Reset visual imediato ao digitar
-    if (available !== null) setAvailable(null);
-    if (message !== "") setMessage("");
+    // Reset visual imediato - seguro aqui pois é um event handler
+    setAvailable(null); 
+    setMessage("");
   };
 
-  // Verificação de Disponibilidade (Debounce)
+  // Effect APENAS para a verificação assíncrona (Debounce)
   useEffect(() => {
-    if (!data.handle || data.handle.length < 3) return;
+  if (!data.handle || data.handle.length < 3) return;
 
-    setChecking(true);
+  setChecking(true); // 👈 warning aqui
+
     
     const timer = setTimeout(() => {
       setChecking(false);
-      // Simulação de verificação
-      if (data.handle !== "admin" && data.handle !== "root") {
+      
+      // Simulação de verificação de API
+      const isTaken = data.handle === "admin" || data.handle === "root";
+      
+      if (!isTaken) {
         setAvailable(true);
         setMessage(compliments[Math.floor(Math.random() * compliments.length)]);
       } else {
@@ -55,12 +58,12 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [data.handle]); // Dependência apenas do valor do handle
+  }, [data.handle]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
       
-      {/* Upload de Imagem Circular */}
+      {/* Avatar Upload */}
       <div className="flex flex-col items-center justify-center mb-8">
         <input 
             type="file" 
@@ -74,10 +77,7 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
             onClick={() => fileInputRef.current?.click()}
             className="relative group cursor-pointer w-32 h-32"
         >
-            {/* Container da Imagem com Overflow Hidden para corte perfeito */}
             <div className="w-full h-full rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden group-hover:border-brand-purple transition-all shadow-sm relative">
-                
-                {/* Overlay ao passar o mouse */}
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center">
                     <span className="text-white text-xs font-bold">Alterar</span>
                 </div>
@@ -93,7 +93,6 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
                 )}
             </div>
             
-            {/* Botão Flutuante */}
             <div className="absolute bottom-1 right-1 w-9 h-9 bg-brand-purple text-white rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:scale-110 transition-transform z-30">
                 <Camera className="w-4 h-4" />
             </div>
@@ -101,7 +100,7 @@ export default function StepIdentity({ data, update, onNext }: StepProps) {
         <p className="text-[10px] text-gray-400 mt-3 font-medium">Toque para adicionar foto</p>
       </div>
 
-      {/* Input de Handle */}
+      {/* Handle Input */}
       <div className="space-y-4">
         <div className="space-y-2">
             <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Seu @handle único</label>
