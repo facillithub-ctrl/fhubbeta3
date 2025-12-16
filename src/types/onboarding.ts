@@ -1,3 +1,5 @@
+// src/types/onboarding.ts
+
 export interface AddressData {
   cep: string;
   logradouro: string;
@@ -45,9 +47,10 @@ export interface OnboardingData {
   };
 }
 
+// CORREÇÃO: Generic para garantir tipagem estrita no update
 export interface StepProps {
   data: OnboardingData;
-  update: (key: keyof OnboardingData, value: any) => void;
+  update: <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => void;
   onNext?: () => void;
   onBack?: () => void;
   onFinish?: () => void;

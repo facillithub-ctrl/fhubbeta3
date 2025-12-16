@@ -1,216 +1,233 @@
+// src/app/(auth)/register/page.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ArrowLeft, User, Mail, Lock, CheckCircle2, GraduationCap, Briefcase, Building2, Loader2, AlertCircle } from "lucide-react"; // Adicionei AlertCircle e Loader2
-import { cn } from "@/shared/utils/cn";
-import { supabase } from "@/lib/supabase"; // Importando o cliente
+import { ArrowRight, Mail, Lock, Loader2, AlertCircle, Layout, Users, Zap } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null); // Estado de erro
+  const [error, setError] = useState<string | null>(null);
 
-  // Estados dos inputs
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
-    accountType: null as "student" | "professional" | "enterprise" | null
+    password: ""
   });
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleNext = () => setStep((p) => p + 1);
-  const handleBack = () => setStep((p) => p - 1);
-
-  // --- AÇÃO REAL DE REGISTRO ---
-  const handleFinish = async () => {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // 1. Criar usuário no Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            full_name: `${formData.firstName} ${formData.lastName}`, // Para o Trigger SQL
-            account_type_initial: formData.accountType, // Dado extra
+            full_name: `${formData.firstName} ${formData.lastName}`,
           },
         },
       });
 
       if (signUpError) throw signUpError;
-
-      if (data.user) {
-        // Sucesso! Redireciona para o Onboarding para completar o perfil
-        // O login é automático na maioria dos casos se a confirmação de email estiver desligada no Supabase
-        router.push("/onboarding"); 
-      }
+      if (data.user) router.push("/onboarding");
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro no registro:", err);
-      setError(err.message || "Erro ao criar conta. Tente novamente.");
+      let message = "Erro ao criar conta. Tente novamente.";
+      if (err instanceof Error) message = err.message;
+      else if (typeof err === "string") message = err;
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-[520px] mx-auto animate-in slide-in-from-right-8 duration-500">
+    <div className="min-h-screen w-full flex bg-white font-sans text-gray-900 overflow-hidden">
       
-      {/* Progresso */}
-      <div className="mb-8 flex justify-center gap-2">
-        {[1, 2, 3].map((s) => (
-            <div key={s} className={cn("h-1.5 rounded-full transition-all duration-500", s <= step ? "w-8 bg-brand-purple" : "w-2 bg-gray-200")} />
-        ))}
+      {/* --- COLUNA ESQUERDA: FORMULÁRIO (50%) --- */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 relative z-10 overflow-y-auto">
+        <div className="w-full max-w-[440px] animate-in slide-in-from-left-6 duration-700 py-10">
+          
+          <div className="mb-10">
+             <div className="inline-flex items-center gap-3 mb-6 group cursor-default">
+                <div className="w-10 h-10 bg-brand-purple text-white rounded-xl flex items-center justify-center font-bold text-xl transition-transform group-hover:scale-105">
+                    F
+                </div>
+                <div>
+                    <h2 className="text-sm font-bold text-gray-900 leading-none tracking-tight">Facillit ID</h2>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Criar Conta</p>
+                </div>
+             </div>
+
+             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-3">
+                Comece sua jornada.
+             </h1>
+             <p className="text-sm text-gray-500 leading-relaxed max-w-sm">
+                Crie um único acesso para conectar estudos, trabalho e produtividade.
+             </p>
+          </div>
+
+          {error && (
+              <div className="mb-6 p-4 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-bold flex items-start gap-3 animate-in fade-in slide-in-from-top-2 shadow-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> 
+                  <span className="leading-relaxed">{error}</span>
+              </div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nome</label>
+                      <input 
+                          type="text" required
+                          value={formData.firstName}
+                          onChange={(e) => handleInputChange("firstName", e.target.value)}
+                          className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300"
+                          placeholder="Seu nome"
+                      />
+                  </div>
+                  <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sobrenome</label>
+                      <input 
+                          type="text" required
+                          value={formData.lastName}
+                          onChange={(e) => handleInputChange("lastName", e.target.value)}
+                          className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
+                          placeholder="Sobrenome"
+                      />
+                  </div>
+              </div>
+
+              <div className="space-y-1.5 group">
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">E-mail Principal</label>
+                  <div className="relative">
+                    <input 
+                        type="email" required
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
+                        placeholder="nome@exemplo.com"
+                    />
+                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                  </div>
+              </div>
+
+              <div className="space-y-1.5 group">
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Criar Senha</label>
+                  <div className="relative">
+                    <input 
+                        type="password" required minLength={6}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
+                        placeholder="Mínimo 6 caracteres"
+                    />
+                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                  </div>
+              </div>
+
+              <button 
+                  type="submit" disabled={loading}
+                  className="w-full mt-6 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Criar ID Gratuito"}
+                  {!loading && <ArrowRight className="w-4 h-4" />}
+              </button>
+          </form>
+
+           <div className="mt-10 pt-8 border-t border-gray-100">
+              <p className="text-xs text-center text-gray-500 mb-8">
+                Já possui identidade? <Link href="/login" className="font-bold text-brand-purple hover:text-brand-dark hover:underline transition-colors">Fazer Login</Link>
+              </p>
+              
+              <div className="opacity-90 hover:opacity-100 transition-opacity">
+                <SecureEnvironmentCard />
+              </div>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-[32px] border border-gray-100 shadow-2xl shadow-gray-200/50 p-8 md:p-10 relative overflow-hidden">
-        
-        {/* --- STEP 1: CREDENCIAIS --- */}
-        {step === 1 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Criar Facillit ID</h1>
-                    <p className="text-gray-500 text-sm">Seu acesso único ao ecossistema.</p>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                        <input 
-                            type="text" placeholder="Nome" 
-                            value={formData.firstName}
-                            onChange={(e) => handleInputChange("firstName", e.target.value)}
-                            className="px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-purple/50 transition-all" 
-                        />
-                        <input 
-                            type="text" placeholder="Sobrenome" 
-                            value={formData.lastName}
-                            onChange={(e) => handleInputChange("lastName", e.target.value)}
-                            className="px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-purple/50 transition-all" 
-                        />
-                    </div>
-                    <div className="relative group">
-                        <input 
-                            type="email" placeholder="E-mail principal" 
-                            value={formData.email}
-                            onChange={(e) => handleInputChange("email", e.target.value)}
-                            className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-purple/50 transition-all" 
-                        />
-                        <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-purple transition-colors" />
-                    </div>
-                    <div className="relative group">
-                        <input 
-                            type="password" placeholder="Criar senha" 
-                            value={formData.password}
-                            onChange={(e) => handleInputChange("password", e.target.value)}
-                            className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-purple/50 transition-all" 
-                        />
-                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-purple transition-colors" />
-                    </div>
-                </div>
-
-                <button 
-                    onClick={handleNext} 
-                    disabled={!formData.email || !formData.password || !formData.firstName}
-                    className="w-full bg-brand-dark disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
-                >
-                    Continuar <ArrowRight className="w-5 h-5" />
-                </button>
+      {/* --- COLUNA DIREITA: VISUAL (Pure White) --- */}
+      <div className="hidden lg:flex flex-col relative bg-white items-center justify-start pt-20 px-12 order-2 border-l border-gray-100 overflow-hidden min-h-screen">
+         
+         {/* TEXTO NO TOPO */}
+         <div className="relative z-10 w-full max-w-lg mb-12 animate-in slide-in-from-top-8 duration-1000">
+            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight leading-snug mb-4">
+                &ldquo;A simplicidade é o grau máximo de sofisticação. O Facillit unifica tudo o que você precisa em um só lugar.&rdquo;
+            </h2>
+            <div className="flex items-center gap-3">
+                <div className="h-[1px] w-12 bg-brand-purple"></div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Manifesto 2025</p>
             </div>
-        )}
+         </div>
 
-        {/* --- STEP 2: TIPO DE CONTA --- */}
-        {step === 2 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900">Seu Perfil</h1>
-                    <p className="text-gray-500 text-sm">Personalizaremos sua experiência baseada nisso.</p>
+         {/* ELEMENTOS GRÁFICOS (Clean Border Cards) */}
+         <div className="w-full max-w-lg grid grid-cols-2 gap-4 relative z-10">
+            {/* Card 1 */}
+            <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
+                <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-brand-purple group-hover:scale-105 transition-transform">
+                    <Layout className="w-5 h-5" />
                 </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                    {[
-                        { id: 'student', icon: GraduationCap, title: 'Estudante', desc: 'Foco em estudos, redação e simulados.' },
-                        { id: 'professional', icon: Briefcase, title: 'Profissional', desc: 'Gestão de carreira, rotina e finanças.' },
-                        { id: 'enterprise', icon: Building2, title: 'Empresa / Escola', desc: 'Gestão de times, alunos e acessos.' },
-                    ].map((type) => (
-                        <button 
-                            key={type.id}
-                            onClick={() => handleInputChange("accountType", type.id)}
-                            className={cn(
-                                "flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all hover:shadow-md",
-                                formData.accountType === type.id 
-                                    ? "border-brand-green bg-green-50/50" 
-                                    : "border-gray-100 bg-white hover:border-brand-green/30"
-                            )}
-                        >
-                            <div className={cn("p-3 rounded-full shrink-0", formData.accountType === type.id ? "bg-brand-green text-white" : "bg-gray-100 text-gray-500")}>
-                                <type.icon className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900">{type.title}</h3>
-                                <p className="text-xs text-gray-500">{type.desc}</p>
-                            </div>
-                            {formData.accountType === type.id && <CheckCircle2 className="w-5 h-5 text-brand-green ml-auto" />}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="flex gap-3">
-                    <button onClick={handleBack} className="w-12 h-12 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50"><ArrowLeft className="w-5 h-5 text-gray-600" /></button>
-                    <button disabled={!formData.accountType} onClick={handleNext} className="flex-1 bg-brand-dark disabled:opacity-50 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all">
-                        Avançar
-                    </button>
+                <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Hub Central</h4>
+                    <p className="text-[11px] text-gray-500 mt-1">Todos os seus apps em um dashboard unificado.</p>
                 </div>
             </div>
-        )}
 
-        {/* --- STEP 3: REVISÃO & CRIAÇÃO --- */}
-        {step === 3 && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300 text-center py-4">
-                <div className="w-20 h-20 bg-brand-gradient rounded-full mx-auto flex items-center justify-center shadow-xl shadow-brand-purple/30 animate-pulse">
-                    <User className="w-8 h-8 text-white" />
+            {/* Card 2 */}
+            <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group translate-y-8">
+                <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-brand-green group-hover:scale-105 transition-transform">
+                    <Users className="w-5 h-5" />
                 </div>
-                
-                <div className="space-y-2">
-                    <h1 className="text-2xl font-bold text-gray-900">Tudo pronto!</h1>
-                    <p className="text-gray-500 text-sm max-w-xs mx-auto">
-                        Ao criar a conta, você terá acesso imediato.
-                    </p>
-                </div>
-
-                {/* Exibição de Erro se houver */}
-                {error && (
-                    <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                        <AlertCircle className="w-4 h-4" /> {error}
-                    </div>
-                )}
-
-                <div className="flex gap-3">
-                    <button onClick={handleBack} disabled={loading} className="w-12 h-12 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50"><ArrowLeft className="w-5 h-5 text-gray-600" /></button>
-                    <button 
-                        onClick={handleFinish} 
-                        disabled={loading}
-                        className="flex-1 bg-brand-green text-brand-dark font-bold rounded-xl py-3.5 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                    >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Criar Minha Conta"}
-                    </button>
+                <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Colaboração</h4>
+                    <p className="text-[11px] text-gray-500 mt-1">Conecte-se com times, escolas e mentores.</p>
                 </div>
             </div>
-        )}
 
-      </div>
+             {/* Card 3 */}
+             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
+                <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform">
+                    <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Performance</h4>
+                    <p className="text-[11px] text-gray-500 mt-1">Ferramentas otimizadas para alta produtividade.</p>
+                </div>
+            </div>
 
-      <div className="mt-8 text-center text-sm text-gray-500">
-        Já possui ID? <Link href="/login" className="font-bold text-brand-purple hover:underline">Fazer Login</Link>
+            {/* Card 4 - Status */}
+             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col justify-center items-start gap-2 group translate-y-8">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-gray-100">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">System Online</span>
+                </div>
+                <div className="flex -space-x-3 mt-2">
+                     {[1,2,3].map(i => (
+                         <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-white flex items-center justify-center text-[9px] font-bold text-gray-400 ring-1 ring-gray-100">
+                            U{i}
+                         </div>
+                     ))}
+                     <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-900 text-white flex items-center justify-center text-[9px] font-bold">
+                        +1M
+                     </div>
+                </div>
+            </div>
+         </div>
+
       </div>
     </div>
   );

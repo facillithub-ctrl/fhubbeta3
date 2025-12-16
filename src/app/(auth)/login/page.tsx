@@ -1,3 +1,4 @@
+// src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -5,14 +6,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { ArrowRight, Mail, Lock, Loader2, AlertCircle, ArrowLeft, Check } from "lucide-react";
+import { ArrowRight, Mail, Lock, Loader2, AlertCircle, ArrowLeft, Check, GraduationCap, Briefcase, Rocket } from "lucide-react";
+import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Estados do Formulário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -22,143 +23,172 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-
-      // Sucesso: Redirecionar para o Hub
-      router.push("/account"); // Ou /select-hub se preferir o fluxo de seleção
-    } catch (err: any) {
-      setError(err.message || "Credenciais inválidas.");
+      if (authError) throw authError;
+      router.push("/account"); 
+    } catch (err: unknown) {
+      console.error("Erro no login:", err);
+      let message = "Credenciais inválidas.";
+      if (err instanceof Error) message = err.message;
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+    <div className="min-h-screen bg-white w-full grid grid-cols-1 lg:grid-cols-2 font-sans text-gray-900">
       
-      {/* --- COLUNA 1: LOGIN FORM --- */}
-      <div className="w-full max-w-[440px] mx-auto flex flex-col animate-in slide-in-from-left-8 duration-700 order-1 lg:order-1">
-        
-        <div className="mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand-purple transition-colors font-bold group">
-                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-brand-purple/10 transition-colors">
-                    <ArrowLeft className="w-4 h-4" />
+      {/* --- COLUNA ESQUERDA: LOGIN FORM --- */}
+      <div className="flex flex-col justify-center items-center p-6 lg:p-12 order-1 relative z-10 bg-white">
+        <div className="w-full max-w-[400px] animate-in slide-in-from-left-4 duration-500">
+            
+            <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-brand-purple mb-10 transition-colors group">
+                <div className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center bg-white hover:border-brand-purple/30 transition-colors">
+                    <ArrowLeft className="w-3 h-3" />
                 </div>
-                Voltar para o Início
+                Voltar ao Início
             </Link>
-        </div>
 
-        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900 mb-3 text-center lg:text-left">
-          Acessar o Hub
-        </h1>
-        <p className="text-gray-500 text-base mb-8 text-center lg:text-left leading-relaxed">
-          Entre com seu Facillit ID para gerenciar sua vida acadêmica e profissional.
-        </p>
-
-        {/* Exibição de Erro */}
-        {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-bold flex items-center gap-2 animate-in fade-in">
-                <AlertCircle className="w-5 h-5 shrink-0" /> {error}
+            <div className="mb-8">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
+                  Bem-vindo de volta.
+                </h1>
+                <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                  Acesse seu Hub e continue sua jornada.
+                </p>
             </div>
-        )}
 
-        <form onSubmit={handleLogin} className="w-full space-y-5">
-            <div className="group">
-                <div className="relative">
-                    <input 
-                        type="email" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder=" " 
-                        className="peer w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 font-medium placeholder-transparent focus:placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-all shadow-sm"
-                        id="email"
-                        required
-                    />
-                    <label 
-                        htmlFor="email"
-                        className="absolute left-5 top-4 text-gray-500 text-base transition-all peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-gray-500 peer-focus:-translate-y-3 peer-focus:text-xs peer-focus:text-brand-purple peer-focus:font-bold cursor-text pointer-events-none"
-                    >
-                        E-mail ou ID
-                    </label>
-                    <Mail className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 peer-focus:text-brand-purple transition-colors" />
+            {error && (
+                <div className="mb-6 p-4 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-bold flex items-start gap-3 animate-in fade-in shadow-sm">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> 
+                    <span>{error}</span>
                 </div>
-            </div>
+            )}
 
-            <div className="group">
-                <div className="relative">
-                    <input 
-                        type="password" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder=" "
-                        className="peer w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 font-medium placeholder-transparent focus:placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-all shadow-sm"
-                        id="password"
-                        required
-                    />
-                    <label 
-                        htmlFor="password"
-                        className="absolute left-5 top-4 text-gray-500 text-base transition-all peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-gray-500 peer-focus:-translate-y-3 peer-focus:text-xs peer-focus:text-brand-purple peer-focus:font-bold cursor-text pointer-events-none"
-                    >
-                        Senha
-                    </label>
-                    <Lock className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 peer-focus:text-brand-purple transition-colors" />
+            <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-1.5 group">
+                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">E-mail ou ID</label>
+                     <div className="relative">
+                        <input 
+                            type="email" 
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full pl-4 pr-10 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300 text-gray-900"
+                            placeholder="seu@email.com"
+                        />
+                        <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                     </div>
                 </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                    <div className="relative flex items-center">
-                        <input type="checkbox" className="peer sr-only" />
-                        <div className="w-5 h-5 border-2 border-gray-300 rounded-md peer-checked:bg-brand-purple peer-checked:border-brand-purple transition-all bg-white"></div>
-                        <Check className="w-3.5 h-3.5 text-white absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                <div className="space-y-1.5 group">
+                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Senha</label>
+                    <div className="relative">
+                        <input 
+                            type="password" 
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full pl-4 pr-10 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300 text-gray-900"
+                            placeholder="••••••••"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
                     </div>
-                    <span className="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">Manter sessão</span>
-                </label>
+                </div>
 
-                <Link href="/forgot" className="text-sm font-bold text-brand-purple hover:text-brand-dark hover:underline transition-colors">
-                    Recuperar senha
+                <div className="flex items-center justify-between py-1">
+                    <label className="flex items-center gap-2 cursor-pointer group select-none">
+                        <div className="relative flex items-center">
+                            <input type="checkbox" className="peer sr-only" />
+                            <div className="w-4 h-4 border border-gray-300 rounded peer-checked:bg-brand-purple peer-checked:border-brand-purple transition-all bg-white"></div>
+                            <span className="absolute text-brand-purple opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none flex items-center justify-center inset-0">
+                                <Check className="w-3 h-3 text-white" />
+                            </span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-500 group-hover:text-gray-800 transition-colors">Manter conectado</span>
+                    </label>
+
+                    <Link href="/forgot" className="text-xs font-bold text-brand-purple hover:text-brand-dark hover:underline transition-colors">
+                        Recuperar senha
+                    </Link>
+                </div>
+
+                <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Acessar Hub"}
+                    {!loading && <ArrowRight className="w-4 h-4" />}
+                </button>
+            </form>
+
+            <div className="mt-10 pt-8 border-t border-gray-100 text-center">
+                <p className="text-xs text-gray-500 mb-4">Ainda não possui Facillit ID?</p>
+                <Link 
+                    href="/register" 
+                    className="inline-flex w-full py-3.5 items-center justify-center font-bold text-xs text-brand-purple bg-white border border-gray-200 rounded-xl hover:border-brand-purple hover:text-brand-dark transition-all duration-300"
+                >
+                    Criar meu ID Agora
                 </Link>
             </div>
 
-            <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full bg-brand-dark hover:bg-black disabled:opacity-70 text-white font-bold text-lg py-4 rounded-2xl shadow-xl shadow-brand-dark/10 hover:shadow-brand-dark/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-3"
-            >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Entrar no Hub"}
-                {!loading && <ArrowRight className="w-5 h-5" />}
-            </button>
-        </form>
-
-        <div className="mt-8 text-center pt-8 border-t border-gray-100">
-            <p className="text-gray-600 mb-4">Ainda não tem identidade digital?</p>
-            <Link 
-                href="/register" 
-                className="inline-flex w-full py-3.5 items-center justify-center font-bold text-brand-purple bg-purple-50 border border-purple-100 rounded-2xl hover:bg-brand-purple hover:text-white hover:border-brand-purple transition-all shadow-sm"
-            >
-                Criar Facillit ID
-            </Link>
+            <div className="mt-10 opacity-90 hover:opacity-100 transition-opacity">
+                <SecureEnvironmentCard />
+            </div>
         </div>
       </div>
 
-      {/* --- COLUNA 2: CARD EXPLICATIVO (Mantido conforme anterior) --- */}
-      {/* ... (Mantenha o código da Coluna 2 igual ao anterior) ... */}
-      <div className="w-full order-2 lg:order-2 mt-8 lg:mt-0 relative h-auto lg:h-full lg:min-h-[640px] bg-gray-50 rounded-[32px] lg:rounded-[48px] p-8 lg:p-12 overflow-hidden border border-gray-100 shadow-inner flex flex-col justify-between">
-         {/* Background Decorativo */}
-         <div className="absolute top-[-20%] right-[-20%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-brand-gradient opacity-10 blur-[80px] lg:blur-[120px] rounded-full pointer-events-none"></div>
-         <div className="relative z-10">
-            <div className="mb-8 lg:mb-12">
-                <div className="w-20 h-20 lg:w-28 lg:h-28 bg-white rounded-3xl shadow-xl shadow-gray-200/50 flex items-center justify-center mb-6 lg:mb-8 transition-transform hover:scale-105 duration-500">
-                    <Image src="/assets/images/accont.svg" alt="ID" width={64} height={64} className="object-contain w-10 h-10 lg:w-16 lg:h-16"/>
-                </div>
-                <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">Um único ID.<br/><span className="text-transparent bg-clip-text bg-brand-gradient">Infinitas possibilidades.</span></h2>
-                <p className="text-gray-500 text-base lg:text-lg leading-relaxed max-w-md">O Facillit Account centraliza sua jornada. Conecte seus estudos, gerencie sua produtividade e acesse recursos corporativos com segurança máxima.</p>
+      {/* --- COLUNA DIREITA: VISUAL (Pure White - Sem Blur) --- */}
+      <div className="hidden lg:flex flex-col relative bg-white items-center justify-start pt-24 p-12 order-2 border-l border-gray-100 overflow-hidden">
+         
+         <div className="relative z-10 text-center max-w-lg animate-in slide-in-from-right-8 duration-1000">
+            
+            {/* Logo Maior - Sombra removida, apenas borda */}
+            <div className="w-32 h-32 bg-white border border-gray-100 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 transform hover:scale-105 transition-transform duration-500">
+                <Image src="/assets/images/accont.svg" alt="ID" width={80} height={80} className="object-contain" priority/>
             </div>
+            
+            <h2 className="text-4xl font-extrabold text-gray-900 mb-6 tracking-tight leading-[1.15]">
+                Um único ID.<br/>
+                <span className="text-brand-purple">Infinitas possibilidades.</span>
+            </h2>
+            
+            <p className="text-base text-gray-500 leading-relaxed font-medium mb-12 max-w-md mx-auto">
+                Conecte seus estudos, gerencie sua produtividade e acesse recursos corporativos. O Facillit Account é sua chave mestra.
+            </p>
+
+            {/* Ícones Flutuantes (Flat/Clean) */}
+            <div className="flex justify-center gap-6">
+                <div className="flex flex-col items-center gap-3 group cursor-default">
+                    <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center hover:border-brand-purple/20 transition-colors">
+                        <GraduationCap className="w-7 h-7 text-brand-purple" />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Education</span>
+                </div>
+                <div className="flex flex-col items-center gap-3 group cursor-default">
+                    <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center hover:border-brand-purple/20 transition-colors delay-75">
+                        <Briefcase className="w-7 h-7 text-brand-purple" />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Enterprise</span>
+                </div>
+                <div className="flex flex-col items-center gap-3 group cursor-default">
+                    <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center hover:border-brand-purple/20 transition-colors delay-150">
+                        <Rocket className="w-7 h-7 text-brand-purple" />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Startups</span>
+                </div>
+            </div>
+
+         </div>
+
+         <div className="absolute bottom-10 text-[10px] text-gray-300 font-bold uppercase tracking-[0.2em]">
+            Facillit Ecosystem &copy; 2025
          </div>
       </div>
 
