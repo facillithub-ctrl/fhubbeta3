@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { User, Shield, Sparkles, LayoutDashboard, LogOut, ChevronRight, LucideIcon, Menu, X } from "lucide-react";
+// [ATUALIZAÇÃO 1] Importar ícone Eye ou Lock
+import { User, Shield, Sparkles, LayoutDashboard, LogOut, ChevronRight, LucideIcon, Menu, X, Eye } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { UserProfile, UserIntelligence, AccountTabOption } from "@/types/account";
 import { createClient } from "@/lib/supabase/client";
@@ -13,27 +14,34 @@ import OverviewTab from "./_components/overview-tab";
 import ProfileTab from "./_components/profile-tab";
 import SecurityTab from "./_components/security-tab";
 import AiTab from "./_components/ai-tab";
+// [ATUALIZAÇÃO 2] Importar a nova aba
+import { PrivacyTab } from "./_components/privacy-tab";
 
 interface ClientPageProps {
   initialUser: UserProfile;
   initialIntelligence: UserIntelligence | null;
+  initialPrivacy: any; // [ATUALIZAÇÃO 3] Receber privacidade
 }
 
 interface MenuItem {
-  id: AccountTabOption;
+  // Nota: Você precisará atualizar o type AccountTabOption em src/types/account.ts para incluir "privacy"
+  id: AccountTabOption | "privacy"; 
   label: string;
   icon: LucideIcon;
 }
 
-export default function AccountClientPage({ initialUser, initialIntelligence }: ClientPageProps) {
-  const [activeTab, setActiveTab] = useState<AccountTabOption>("overview");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Estado do Menu Mobile
+export default function AccountClientPage({ initialUser, initialIntelligence, initialPrivacy }: ClientPageProps) {
+  // Adicionar "privacy" ao estado inicial se quiser, ou manter "overview"
+  const [activeTab, setActiveTab] = useState<AccountTabOption | "privacy">("overview");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const menuItems: MenuItem[] = [
     { id: "overview", label: "Visão Geral", icon: LayoutDashboard },
     { id: "profile", label: "Meu Perfil", icon: User },
+    // [ATUALIZAÇÃO 4] Item do menu adicionado
+    { id: "privacy", label: "Privacidade", icon: Eye },
     { id: "security", label: "Segurança", icon: Shield },
     { id: "ai", label: "Inteligência", icon: Sparkles },
   ];
@@ -44,23 +52,21 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
     router.refresh();
   };
 
-  const handleTabChange = (id: AccountTabOption) => {
+  const handleTabChange = (id: AccountTabOption | "privacy") => {
     setActiveTab(id);
-    setIsMobileMenuOpen(false); // Fecha o menu ao selecionar
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 animate-in fade-in duration-500">
         
-        {/* --- HEADER ACCOUNT --- */}
+        {/* --- HEADER ACCOUNT (Mantido igual) --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12 border-b border-gray-100 pb-6 relative">
             <div className="flex items-center gap-5">
-                {/* Logo Maior */}
                 <div className="w-16 h-16 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center shrink-0">
                     <Image src="/assets/images/accont.svg" width={32} height={32} alt="Facillit Account" className="w-8 h-8" />
                 </div>
                 <div>
-                    {/* Texto com Gradiente */}
                     <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-brand-gradient">
                         Facillit Account
                     </h1>
@@ -70,7 +76,6 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
                 </div>
             </div>
 
-            {/* Botão Hamburger (Só Mobile) */}
             <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden absolute top-0 right-0 p-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
@@ -82,10 +87,8 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative">
             
             {/* --- NAVEGAÇÃO --- */}
-            {/* Desktop: Sidebar Fixa | Mobile: Menu Expansível (Hamburger) */}
             <nav className={cn(
                 "w-full lg:w-64 flex-shrink-0 transition-all duration-300 ease-in-out z-20",
-                // Lógica de exibição Mobile
                 "lg:block", 
                 isMobileMenuOpen ? "block" : "hidden"
             )}>
@@ -125,7 +128,7 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
                 </div>
             </nav>
 
-            {/* Overlay para fechar menu no mobile ao clicar fora (Opcional, mas boa UX) */}
+            {/* Overlay Mobile */}
             {isMobileMenuOpen && (
                 <div 
                     className="fixed inset-0 bg-black/20 z-10 lg:hidden"
@@ -134,10 +137,13 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
             )}
 
             {/* --- ÁREA DE CONTEÚDO --- */}
-            {/* Oculta o conteúdo se o menu mobile estiver aberto para focar na navegação */}
             <div className={cn("flex-1 min-w-0 bg-white rounded-3xl border border-gray-100 p-6 md:p-10 shadow-sm", isMobileMenuOpen && "hidden lg:block")}>
-                {activeTab === "overview" && <OverviewTab user={initialUser} intelligence={initialIntelligence} setTab={setActiveTab} />}
+                {activeTab === "overview" && <OverviewTab user={initialUser} intelligence={initialIntelligence} setTab={setActiveTab as any} />}
                 {activeTab === "profile" && <ProfileTab user={initialUser} />}
+                
+                {/* [ATUALIZAÇÃO 5] Renderizar Aba Privacidade */}
+                {activeTab === "privacy" && <PrivacyTab privacySettings={initialPrivacy} />}
+                
                 {activeTab === "security" && <SecurityTab />}
                 {activeTab === "ai" && <AiTab user={initialUser} />}
             </div>

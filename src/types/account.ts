@@ -1,8 +1,9 @@
+// src/types/account.ts
 import { AddressData } from "./onboarding";
-import { VerificationTier } from "@/shared/ui/verification-badge"; // Importe do novo arquivo
+import { VerificationTier } from "@/shared/ui/verification-badge"; 
 
-// Navegação
-export type AccountTabOption = "overview" | "profile" | "security" | "ai";
+// [CORREÇÃO] Adicionado "privacy" nas opções
+export type AccountTabOption = "overview" | "profile" | "security" | "ai" | "privacy";
 
 export type AccountRole = 'individual' | 'student' | 'teacher' | 'institution' | 'admin';
 
@@ -37,7 +38,6 @@ export interface UserProfile {
   gender: string | null;
   pronouns: string | null;
   
-  // Novo Campo
   verification_tier: VerificationTier; 
 
   address: AddressData | null;

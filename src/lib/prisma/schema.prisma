@@ -1,50 +1,62 @@
-// src/lib/prisma/schema.prisma
+// Adicione/Atualize no seu schema.prisma
 
-model User {
-  id            String    @id @default(uuid())
-  name          String
-  username      String    @unique // Essencial para deeplinks
-  email         String    @unique
-  image         String?
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  username  String   @unique // O "handle" para o deeplink
+  name      String
+  bio       String?
+  avatarUrl String?
   
-  // Relação 1:1 com Perfil Social
-  socialProfile SocialProfile?
+  // Relações Sociais
+  followers Follows[] @relation("following")
+  following Follows[] @relation("follower")
+  
+  // Configurações de Privacidade (1:1)
+  privacy   ProfilePrivacy?
 
-  // Grafo de seguidores
-  followedBy    SocialFollow[] @relation("following")
-  following     SocialFollow[] @relation("follower")
+  // Conteúdo Futuro
+  posts     Post[]
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
 }
 
-model SocialProfile {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  bio         String?
-  location    String?
-  website     String?
-  
-  // Configurações de Privacidade (JSONB no Postgres)
-  // Ex: { "showEmail": false, "showEducation": true, "allowSearch": true }
-  privacySettings Json @default("{}")
+model ProfilePrivacy {
+  id        String  @id @default(uuid())
+  profileId String  @unique
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isPublic      Boolean @default(true) // Perfil aparece na busca?
+  showEmail     Boolean @default(false)
+  showLocation  Boolean @default(true)
+  showEducation Boolean @default(true) // Exemplo específico citado
+  allowMessages Boolean @default(true)
+
+  @@map("profile_privacy")
 }
 
-model SocialFollow {
+model Follows {
   followerId  String
   followingId String
-  
-  follower    User @relation("follower", fields: [followerId], references: [id])
-  following   User @relation("following", fields: [followingId], references: [id])
-
+  follower    Profile @relation("follower", fields: [followerId], references: [id])
+  following   Profile @relation("following", fields: [followingId], references: [id])
   createdAt   DateTime @default(now())
 
   @@id([followerId, followingId])
-  @@index([followerId])
-  @@index([followingId])
+  @@map("social_follows")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  content   String?
+  mediaUrl  String?
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("social_posts")
 }

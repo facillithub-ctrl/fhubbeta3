@@ -2,11 +2,11 @@
 'use client'
 
 import { useRef, useEffect } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
+// [CORREÇÃO 1] Importar DialogTitle
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Share, Download, Loader2 } from "lucide-react";
 
-// Imports corrigidos
 import { ProfileShareCard } from "./ProfileShareCard"; 
 import { useProfileShare } from "./hooks/useProfileShare";
 import { PublicProfileDTO } from "../types";
@@ -14,7 +14,6 @@ import { PublicProfileDTO } from "../types";
 export function ProfileShareCardWrapper({ profile }: { profile: PublicProfileDTO }) {
     const cardRef = useRef<HTMLDivElement>(null);
     
-    // Hook personalizado
     const { 
         isGenerating, 
         previewUrl, 
@@ -26,7 +25,6 @@ export function ProfileShareCardWrapper({ profile }: { profile: PublicProfileDTO
         clearPreview
     } = useProfileShare(profile.username, profile.avatarUrl);
 
-    // Carrega imagens em base64 ao abrir para evitar problemas de CORS
     useEffect(() => {
         prepareEnvironment();
     }, [prepareEnvironment]);
@@ -46,8 +44,11 @@ export function ProfileShareCardWrapper({ profile }: { profile: PublicProfileDTO
             </DialogTrigger>
             <DialogContent className="max-w-[600px] bg-gray-50/50 border-none shadow-none p-0 flex flex-col items-center">
                 
+                {/* [CORREÇÃO 2] Adicionar DialogTitle obrigatório */}
+                <DialogTitle className="sr-only">Compartilhar perfil de {profile.name}</DialogTitle>
+
                 <div className="w-full flex flex-col items-center gap-6 p-6">
-                    {/* Área de Preview (Renderiza o componente ou a imagem gerada) */}
+                    {/* Área de Preview */}
                     <div className="relative shadow-2xl rounded-[30px] overflow-hidden border border-gray-200">
                         {previewUrl ? (
                             <img src={previewUrl} alt="Preview" className="w-[300px] h-auto object-contain" />
