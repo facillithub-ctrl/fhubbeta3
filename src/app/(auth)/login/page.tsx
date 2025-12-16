@@ -1,11 +1,11 @@
-// src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+// CORREÇÃO: Importar da nova estrutura
+import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Mail, Lock, Loader2, AlertCircle, ArrowLeft, Check, GraduationCap, Briefcase, Rocket } from "lucide-react";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 
@@ -16,6 +16,9 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  // CORREÇÃO: Instanciar o cliente
+  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

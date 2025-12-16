@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { UserProfile, UserIntelligence, AIPreferences } from "@/types/account";
 import { revalidatePath } from "next/cache";
 
+// Tipo de retorno padronizado
+type ActionResponse = { success: boolean; error?: string };
+
 interface AccountDataResponse {
   user: UserProfile;
   intelligence: UserIntelligence | null;
@@ -29,21 +32,22 @@ export async function getAccountData(): Promise<AccountDataResponse> {
     .from('user_intelligence')
     .select('*')
     .eq('profile_id', user.id)
-    .maybeSingle(); // maybeSingle evita erro se não existir
+    .maybeSingle();
 
   return {
-    user: { ...profile, email: user.email! } as UserProfile, // Injeta o email do auth
+    user: { ...profile, email: user.email! } as UserProfile,
     intelligence: intelligence as UserIntelligence | null
   };
 }
 
-export async function updateProfile(formData: Partial<UserProfile>): Promise<{ success: boolean; error?: string }> {
+export async function updateProfile(formData: Partial<UserProfile>): Promise<ActionResponse> {
   const supabase = await createClient();
+  
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autorizado" };
 
-  // Remove email dos dados a serem atualizados (email é gerido pelo auth)
-  const { email, ...updates } = formData;
+  // Removemos campos sensíveis ou geridos pelo auth
+  const { email, id, created_at, ...updates } = formData;
 
   const { error } = await supabase
     .from('profiles')
@@ -59,7 +63,7 @@ export async function updateProfile(formData: Partial<UserProfile>): Promise<{ s
   return { success: true };
 }
 
-export async function updateAiPreferences(preferences: AIPreferences): Promise<{ success: boolean; error?: string }> {
+export async function updateAiPreferences(preferences: AIPreferences): Promise<ActionResponse> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autorizado" };
@@ -68,7 +72,7 @@ export async function updateAiPreferences(preferences: AIPreferences): Promise<{
     .from('profiles')
     .update({
       ai_preferences: preferences,
-      ai_level: preferences.autonomy_level, // Sincroniza nível
+      ai_level: preferences.autonomy_level,
       updated_at: new Date().toISOString(),
     })
     .eq('id', user.id);

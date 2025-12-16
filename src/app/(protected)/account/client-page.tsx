@@ -4,7 +4,8 @@ import { useState } from "react";
 import { User, Shield, Sparkles, LayoutDashboard, LogOut, ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { UserProfile, UserIntelligence, AccountTabOption } from "@/types/account";
-import { supabase } from "@/lib/supabase";
+// CORREÇÃO AQUI: Importar createClient do arquivo client.ts específico
+import { createClient } from "@/lib/supabase/client"; 
 import { useRouter } from "next/navigation";
 
 // Tabs
@@ -27,6 +28,9 @@ interface MenuItem {
 export default function AccountClientPage({ initialUser, initialIntelligence }: ClientPageProps) {
   const [activeTab, setActiveTab] = useState<AccountTabOption>("overview");
   const router = useRouter();
+  
+  // CORREÇÃO AQUI: Instanciar o cliente do navegador
+  const supabase = createClient(); 
 
   const menuItems: MenuItem[] = [
     { id: "overview", label: "Visão Geral", icon: LayoutDashboard },
@@ -38,12 +42,12 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
+    router.refresh();
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 animate-in fade-in duration-500">
         
-        {/* Header */}
         <div className="mb-10">
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Minha Conta</h1>
             <p className="text-sm text-gray-500 mt-1">Gerencie suas preferências e identidade no ecossistema.</p>
@@ -51,7 +55,7 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
 
         <div className="flex flex-col lg:flex-row gap-10">
             
-            {/* --- MENU DE NAVEGAÇÃO INTERNO --- */}
+            {/* --- MENU DE NAVEGAÇÃO --- */}
             <nav className="w-full lg:w-64 flex-shrink-0">
                 <div className="flex lg:flex-col gap-1 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 sticky top-4">
                     {menuItems.map((item) => {
@@ -86,12 +90,12 @@ export default function AccountClientPage({ initialUser, initialIntelligence }: 
                 </div>
             </nav>
 
-            {/* --- ÁREA DE CONTEÚDO --- */}
+            {/* --- CONTEÚDO --- */}
             <div className="flex-1 min-w-0 bg-white rounded-3xl lg:border lg:border-gray-100 lg:p-8 lg:shadow-sm">
                 {activeTab === "overview" && <OverviewTab user={initialUser} intelligence={initialIntelligence} setTab={setActiveTab} />}
                 {activeTab === "profile" && <ProfileTab user={initialUser} />}
-                {activeTab === "security" && <SecurityTab user={initialUser} />}
-                {activeTab === "ai" && <AiTab user={initialUser} />}
+                {activeTab === "security" && <SecurityTab />}
+                {activeTab === "ai" && <AiTab user={initialUser}/>}
             </div>
 
         </div>

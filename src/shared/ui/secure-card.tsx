@@ -47,7 +47,7 @@ export function SecureEnvironmentCard() {
           </div>
 
           <p className="mt-1 text-xs leading-relaxed text-gray-500">
-            Um único ID para acessar Education, Schools e Enterprise.
+            Um único ID para todo o acossitema <b>Facillit Hub</b>.
             Menos senhas, mais controle e portabilidade total.
           </p>
         </div>

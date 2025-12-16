@@ -1,17 +1,19 @@
-// src/app/(auth)/register/page.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Mail, Lock, Loader2, AlertCircle, Layout, Users, Zap } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+// CORREÇÃO: Importar da nova estrutura
+import { createClient } from "@/lib/supabase/client";
+import { ArrowRight, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // CORREÇÃO: Instanciar o cliente
+  const supabase = createClient();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -179,7 +181,7 @@ export default function RegisterPage() {
             {/* Card 1 */}
             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
                 <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-brand-purple group-hover:scale-105 transition-transform">
-                    <Layout className="w-5 h-5" />
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                 </div>
                 <div>
                     <h4 className="font-bold text-gray-900 text-sm">Hub Central</h4>
@@ -189,8 +191,8 @@ export default function RegisterPage() {
 
             {/* Card 2 */}
             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group translate-y-8">
-                <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-brand-green group-hover:scale-105 transition-transform">
-                    <Users className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-green-600 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 </div>
                 <div>
                     <h4 className="font-bold text-gray-900 text-sm">Colaboração</h4>
@@ -201,7 +203,7 @@ export default function RegisterPage() {
              {/* Card 3 */}
              <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
                 <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform">
-                    <Zap className="w-5 h-5" />
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 </div>
                 <div>
                     <h4 className="font-bold text-gray-900 text-sm">Performance</h4>
