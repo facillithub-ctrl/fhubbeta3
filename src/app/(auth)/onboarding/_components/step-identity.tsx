@@ -1,78 +1,152 @@
 "use client";
 
-import { useRef } from "react";
-import Image from "next/image";
-import { Camera, User, Check, ArrowRight, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { User, Camera, AtSign, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { StepProps } from "@/types/onboarding";
+import { cn } from "@/shared/utils/cn";
+
+const compliments = ["Que nome daora!", "Disponível e incrível.", "Ótima escolha!", "Esse vai ficar famoso.", "Curti, autêntico!"];
 
 export default function StepIdentity({ data, update, onNext }: StepProps) {
+  const [checking, setChecking] = useState(false);
+  const [available, setAvailable] = useState<boolean | null>(null);
+  const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Manipulação de Upload de Imagem (DataURL)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => update("profileImage", reader.result as string);
+      reader.onloadend = () => {
+        // Atualiza o estado global com a string base64 da imagem
+        update("profileImage", reader.result as string);
+      };
       reader.readAsDataURL(file);
     }
   };
 
+  // Manipulação do Input de Handle (com reset síncrono para evitar erro de setState)
+  const handleHandleChange = (val: string) => {
+    const formatted = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    update("handle", formatted);
+    
+    // Reset visual imediato ao digitar
+    if (available !== null) setAvailable(null);
+    if (message !== "") setMessage("");
+  };
+
+  // Verificação de Disponibilidade (Debounce)
+  useEffect(() => {
+    if (!data.handle || data.handle.length < 3) return;
+
+    setChecking(true);
+    
+    const timer = setTimeout(() => {
+      setChecking(false);
+      // Simulação de verificação
+      if (data.handle !== "admin" && data.handle !== "root") {
+        setAvailable(true);
+        setMessage(compliments[Math.floor(Math.random() * compliments.length)]);
+      } else {
+        setAvailable(false);
+        setMessage("Este handle já está em uso.");
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [data.handle]); // Dependência apenas do valor do handle
+
   return (
-    <div className="space-y-12">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">Sua Identidade</h1>
-        <p className="text-lg text-gray-500 max-w-lg mx-auto">Como você quer ser reconhecido no ecossistema Facillit?</p>
-      </div>
-
-      <div className="flex flex-col items-center">
-        <div 
-            className="relative group cursor-pointer w-48 h-48 md:w-56 md:h-56 rounded-full p-1 bg-gradient-to-tr from-brand-purple to-brand-green shadow-2xl shadow-brand-purple/20 transition-transform hover:scale-105"
-            onClick={() => fileInputRef.current?.click()}
-        >
-            <div className="w-full h-full rounded-full overflow-hidden bg-white border-4 border-white relative flex items-center justify-center">
-                {data.profileImage ? (
-                    <Image src={data.profileImage} alt="Profile" fill className="object-cover" />
-                ) : (
-                    <User className="w-24 h-24 text-gray-200" />
-                )}
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-white" />
-                </div>
-            </div>
-            <div className="absolute bottom-2 right-2 bg-white text-brand-purple p-3 rounded-full shadow-lg border border-gray-100">
-                <Sparkles className="w-5 h-5 fill-brand-purple" />
-            </div>
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-        </div>
-      </div>
-
-      <div className="max-w-md mx-auto space-y-6">
-        <div className="relative group">
-            <input 
-                type="text" 
-                value={data.handle}
-                onChange={(e) => update("handle", e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))}
-                placeholder="seu.usuario" 
-                className="w-full text-center px-6 py-6 bg-gray-50 border-2 border-transparent rounded-2xl text-3xl font-black text-gray-900 placeholder:text-gray-300 focus:bg-white focus:border-brand-purple focus:ring-4 focus:ring-brand-purple/10 outline-none transition-all"
-                autoFocus
-            />
-            <div className="absolute top-1/2 left-4 -translate-y-1/2 text-2xl font-bold text-gray-300 pointer-events-none group-focus-within:text-brand-purple group-focus-within:opacity-100 opacity-0 transition-all">@</div>
-            
-            {data.handle.length > 3 && (
-                <div className="absolute top-1/2 right-4 -translate-y-1/2 text-brand-green bg-green-50 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 animate-in zoom-in">
-                    <Check className="w-4 h-4" /> Livre
-                </div>
-            )}
-        </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+      
+      {/* Upload de Imagem Circular */}
+      <div className="flex flex-col items-center justify-center mb-8">
+        <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            className="hidden" 
+            accept="image/*"
+        />
         
-        <button 
-            onClick={onNext}
-            disabled={!data.handle}
-            className="w-full bg-brand-dark hover:bg-black text-white text-xl font-bold py-5 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+        <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="relative group cursor-pointer w-32 h-32"
         >
-            Continuar <ArrowRight className="w-6 h-6" />
-        </button>
+            {/* Container da Imagem com Overflow Hidden para corte perfeito */}
+            <div className="w-full h-full rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden group-hover:border-brand-purple transition-all shadow-sm relative">
+                
+                {/* Overlay ao passar o mouse */}
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">Alterar</span>
+                </div>
+                
+                {data.profileImage ? (
+                    <img 
+                        src={data.profileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover relative z-10" 
+                    />
+                ) : (
+                    <User className="w-12 h-12 text-gray-300 group-hover:text-gray-400 transition-colors relative z-10" />
+                )}
+            </div>
+            
+            {/* Botão Flutuante */}
+            <div className="absolute bottom-1 right-1 w-9 h-9 bg-brand-purple text-white rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:scale-110 transition-transform z-30">
+                <Camera className="w-4 h-4" />
+            </div>
+        </div>
+        <p className="text-[10px] text-gray-400 mt-3 font-medium">Toque para adicionar foto</p>
       </div>
+
+      {/* Input de Handle */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Seu @handle único</label>
+            <div className="relative group">
+                <input 
+                    type="text" 
+                    value={data.handle}
+                    onChange={(e) => handleHandleChange(e.target.value)} 
+                    className={cn(
+                        "w-full pl-10 pr-10 py-4 bg-white border rounded-xl text-sm font-bold outline-none transition-all placeholder:text-gray-300 placeholder:font-normal",
+                        available === true ? "border-green-500 text-green-700 focus:ring-green-500/20" :
+                        available === false ? "border-red-300 text-red-600 focus:ring-red-200" :
+                        "border-gray-200 focus:ring-2 focus:ring-brand-purple/10 focus:border-brand-purple"
+                    )}
+                    placeholder="ex: joaosilva"
+                />
+                <AtSign className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors", available ? "text-green-500" : "text-gray-300")} />
+                
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                    {checking && <Loader2 className="w-4 h-4 text-brand-purple animate-spin" />}
+                    {!checking && available === true && <CheckCircle2 className="w-5 h-5 text-green-500 animate-in zoom-in" />}
+                    {!checking && available === false && <XCircle className="w-5 h-5 text-red-400 animate-in zoom-in" />}
+                </div>
+            </div>
+            
+            <div className="h-5 ml-1">
+                {message && (
+                    <p className={cn(
+                        "text-[11px] font-bold animate-in slide-in-from-left-2",
+                        available ? "text-green-600" : "text-red-500"
+                    )}>
+                        {message}
+                    </p>
+                )}
+            </div>
+        </div>
+      </div>
+
+      <button 
+        onClick={onNext}
+        disabled={!available}
+        className="w-full mt-6 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+      >
+        Confirmar Identidade
+      </button>
     </div>
   );
 }

@@ -1,139 +1,132 @@
 "use client";
 
-import { Check, ArrowRight, PenTool, ClipboardCheck, PlayCircle, Gamepad2, BookOpen, Workflow, GraduationCap, School, FlaskConical, LayoutDashboard, Cloud, Code2, Shield, Users, CreditCard, Calendar, MessageCircle, Briefcase, TrendingUp } from "lucide-react";
+import { Check, Layout, DownloadCloud, AlertCircle } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
-import { StepProps } from "@/types/onboarding";
+import { StepProps, ProfileType } from "@/types/onboarding";
 
-// Mapeamento Completo
-const ecosystem = [
-  {
-    category: "Education",
-    target: ["education"],
-    modules: [
-        { id: "write", title: "Write", icon: PenTool, desc: "Redação IA" },
-        { id: "games", title: "Games", icon: Gamepad2, desc: "Gamificação" },
-        { id: "test", title: "Test", icon: ClipboardCheck, desc: "Simulados" },
-        { id: "play", title: "Play", icon: PlayCircle, desc: "Streaming" },
-        { id: "library", title: "Library", icon: BookOpen, desc: "Biblioteca" },
-        { id: "create", title: "Create", icon: Workflow, desc: "Mapas Mentais" },
+// Definição Completa dos Módulos por Perfil
+const moduleRegistry: Record<string, { id: string, name: string, cat: string, profile: ProfileType }[]> = {
+    "education": [
+        { id: "write", name: "Facillit Write", cat: "Redação AI", profile: "education" },
+        { id: "games", name: "EduGames", cat: "Gamificação", profile: "education" },
+        { id: "library", name: "Library", cat: "Conteúdo", profile: "education" },
+        { id: "test", name: "Test", cat: "Avaliaçãos", profile: "education" },
+        { id: "play", name: "Play", cat: "Conteúdo", profile: "education" },
+        { id: "create", name: "Create", cat: "Criação", profile: "education" },
+    ],
+    "enterprise": [
+        { id: "people", name: "People", cat: "RH & PDI", profile: "enterprise" },
+        { id: "card", name: "Facillit Card", cat: "Benefícios", profile: "enterprise" },
+        { id: "access", name: "Access", cat: "Segurança", profile: "enterprise" },
+    ],
+    "individuals": [
+        { id: "day", name: "Facillit Day", cat: "Planner", profile: "individuals" },
+        { id: "finances", name: "Finanças", cat: "Gestão", profile: "individuals" },
+        { id: "stories", name: "Stories", cat: "Social", profile: "individuals" },
+    ],
+    "schools": [
+        { id: "manager", name: "Manager", cat: "ERP Escolar", profile: "schools" },
+        { id: "grade", name: "Gradebook", cat: "Notas", profile: "schools" },
+    ],
+    "startups": [
+        { id: "growth", name: "Growth", cat: "Métricas", profile: "startups" },
+        { id: "invest", name: "Invest", cat: "Equity", profile: "startups" },
     ]
-  },
-  {
-    category: "Schools",
-    target: ["schools"],
-    modules: [
-        { id: "edu", title: "Edu", icon: School, desc: "Gestão Escolar" },
-        { id: "lab", title: "Lab", icon: FlaskConical, desc: "Laboratório 3D" },
-    ]
-  },
-  {
-    category: "Startups",
-    target: ["startups", "enterprise"],
-    modules: [
-        { id: "center", title: "Center", icon: LayoutDashboard, desc: "Sistema Op." },
-        { id: "host", title: "Host", icon: Cloud, desc: "Cloud Hosting" },
-        { id: "api", title: "API", icon: Code2, desc: "API Gateway" },
-    ]
-  },
-  {
-    category: "Enterprise",
-    target: ["enterprise"],
-    modules: [
-        { id: "access", title: "Access", icon: Shield, desc: "IAM & SSO" },
-        { id: "people", title: "People", icon: Users, desc: "RH Tech" },
-        { id: "card", title: "Card", icon: CreditCard, desc: "Benefícios" },
-    ]
-  },
-  {
-    category: "Individuals",
-    target: ["individuals", "education", "professional"],
-    modules: [
-        { id: "day", title: "Day", icon: Calendar, desc: "Agenda" },
-        { id: "finances", title: "Finances", icon: TrendingUp, desc: "Finanças" },
-        { id: "stories", title: "Stories", icon: MessageCircle, desc: "Comunidade" },
-        { id: "career", title: "C&C", icon: Briefcase, desc: "Carreira" },
-    ]
-  }
-];
+};
 
 export default function StepModules({ data, update, onNext, onBack }: StepProps) {
   
-  const toggle = (id: string) => {
-    const current = data.selectedModules;
+  // 1. Identificar perfis selecionados
+  const activeProfiles = data.profileTypes || [];
+
+  // 2. Gerar lista de módulos baseada nos perfis
+  const availableModules = activeProfiles.flatMap(p => moduleRegistry[p] || []);
+
+  const toggleModule = (id: string) => {
+    const current = data.selectedModules || [];
     if (current.includes(id)) {
-        update("selectedModules", current.filter((m) => m !== id));
+        update("selectedModules", current.filter(m => m !== id));
     } else {
         update("selectedModules", [...current, id]);
     }
   };
 
+  const selectedCount = data.selectedModules?.length || 0;
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 h-full flex flex-col">
-      <div className="flex justify-between items-end border-b border-gray-100 pb-4">
-        <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Seus Aplicativos</h1>
-            <p className="text-gray-500 text-lg">Ative o que você mais usa.</p>
-        </div>
-        <div className="text-right">
-            <span className="text-2xl font-bold text-brand-purple">{data.selectedModules.length}</span>
-            <p className="text-xs font-bold text-gray-400 uppercase">Selecionados</p>
-        </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+      
+      {/* Header Visual */}
+      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+              <h4 className="font-bold text-gray-900 text-sm">Workspace Personalizado</h4>
+              <p className="text-xs text-gray-500 mt-1">
+                  Baseado em: {activeProfiles.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(", ")}
+              </p>
+          </div>
+          <div className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 shadow-sm">
+              {availableModules.length} Apps Disponíveis
+          </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-2 pb-4 space-y-8">
-        {ecosystem.map((section) => {
-            const isTarget = section.target.includes(data.profileType || "none");
-            
-            return (
-                <div key={section.category} className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <h3 className={cn("text-sm font-black uppercase tracking-widest", isTarget ? "text-brand-purple" : "text-gray-400")}>
-                            {section.category}
-                        </h3>
-                        <div className="h-px bg-gray-100 flex-1"></div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {section.modules.map((mod) => {
-                            const isSelected = data.selectedModules.includes(mod.id);
-                            return (
-                                <button
-                                    key={mod.id}
-                                    onClick={() => toggle(mod.id)}
-                                    className={cn(
-                                        "flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all duration-200 group relative overflow-hidden",
-                                        isSelected 
-                                            ? "border-brand-purple bg-purple-50/50 shadow-sm" 
-                                            : "border-gray-100 bg-white hover:border-gray-200"
-                                    )}
-                                >
-                                    <div className={cn("p-2 rounded-lg shrink-0 transition-colors", isSelected ? "bg-white text-brand-purple" : "bg-gray-50 text-gray-400 group-hover:text-gray-600")}>
-                                        <mod.icon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className={cn("font-bold text-sm truncate", isSelected ? "text-brand-purple" : "text-gray-700")}>{mod.title}</h4>
-                                        <p className="text-[10px] text-gray-500 leading-tight mt-0.5 truncate">{mod.desc}</p>
-                                    </div>
-                                    
-                                    <div className={cn(
-                                        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
-                                        isSelected ? "border-brand-purple bg-brand-purple text-white scale-100" : "border-gray-200 scale-90 opacity-0 group-hover:opacity-100"
-                                    )}>
-                                        <Check className="w-3 h-3" />
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )
-        })}
+      <div className="space-y-2">
+        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Instalação Modular</label>
+        
+        {availableModules.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+                {availableModules.map((m) => {
+                    const isSelected = data.selectedModules.includes(m.id);
+                    return (
+                        <button
+                            key={m.id}
+                            onClick={() => toggleModule(m.id)}
+                            className={cn(
+                                "p-4 rounded-xl border text-left transition-all relative group h-24 flex flex-col justify-between overflow-hidden",
+                                isSelected 
+                                    ? "border-brand-green bg-white shadow-md transform scale-[1.02]" 
+                                    : "border-gray-200 bg-white hover:border-gray-300"
+                            )}
+                        >
+                            {/* Animação de Fundo ao Selecionar */}
+                            {isSelected && (
+                                <div className="absolute inset-0 bg-green-50/50 animate-in fade-in duration-300 z-0"></div>
+                            )}
+                            
+                            <div className="flex justify-between items-start relative z-10">
+                                <h3 className={cn("text-sm font-bold", isSelected ? "text-brand-green" : "text-gray-900")}>{m.name}</h3>
+                                <div className={cn(
+                                    "rounded-full p-1 transition-all duration-300",
+                                    isSelected ? "bg-brand-green text-white rotate-0" : "bg-gray-100 text-gray-300 -rotate-90 opacity-0 group-hover:opacity-100"
+                                )}>
+                                    {isSelected ? <Check className="w-3 h-3" /> : <DownloadCloud className="w-3 h-3"/>}
+                                </div>
+                            </div>
+                            <div className="relative z-10 flex justify-between items-end">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.cat}</p>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase">{m.profile.slice(0,3)}</span>
+                            </div>
+                        </button>
+                    )
+                })}
+            </div>
+        ) : (
+            <div className="p-8 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center text-gray-400">
+                <AlertCircle className="w-8 h-8 mb-2 opacity-50"/>
+                <p className="text-sm">Nenhum perfil selecionado anteriormente.</p>
+                <button onClick={onBack} className="text-xs text-brand-purple font-bold mt-2 hover:underline">Voltar e selecionar perfil</button>
+            </div>
+        )}
       </div>
 
-      <div className="flex justify-between pt-6 border-t border-gray-100 mt-auto">
-        <button onClick={onBack} className="text-gray-500 font-bold hover:text-gray-900 px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors">Voltar</button>
-        <button onClick={onNext} className="bg-brand-dark text-white font-bold py-3.5 px-10 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">
-            Continuar
+      <div className="flex gap-4 pt-4">
+        <button onClick={onBack} className="w-14 h-14 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors">
+            ←
+        </button>
+        <button 
+            onClick={onNext}
+            className="flex-1 bg-brand-dark hover:bg-black text-white font-bold text-sm rounded-xl shadow-none transition-all py-4"
+        >
+            Instalar {selectedCount} Apps
         </button>
       </div>
     </div>

@@ -1,5 +1,3 @@
-// src/types/onboarding.ts
-
 export interface AddressData {
   cep: string;
   logradouro: string;
@@ -14,31 +12,25 @@ export interface AddressData {
   siafi?: string;
 }
 
+// Removemos o 'null' daqui para facilitar a tipagem dos arrays
 export type ProfileType = 
   | "education" 
   | "individuals" 
   | "schools" 
   | "startups" 
-  | "enterprise" 
-  | null;
+  | "enterprise";
 
 export type AiLevel = "moderate" | "intermediate" | "advanced";
 
 export interface OnboardingData {
-  // Identidade
   handle: string;
   profileImage: string | null;
-  
-  // Localização
   address: AddressData | null;
   
-  // Perfil & Contexto
-  profileType: ProfileType;
+  // MUDANÇA: Array de strings para múltipla seleção
+  profileTypes: ProfileType[]; 
   
-  // Módulos (IDs dos apps selecionados)
   selectedModules: string[];
-  
-  // Inteligência Artificial
   aiLevel: AiLevel;
   deviceTrusted: boolean;
   permissions: {
@@ -47,7 +39,6 @@ export interface OnboardingData {
   };
 }
 
-// CORREÇÃO: Generic para garantir tipagem estrita no update
 export interface StepProps {
   data: OnboardingData;
   update: <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => void;

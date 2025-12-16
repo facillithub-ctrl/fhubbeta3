@@ -1,87 +1,104 @@
-import { Shield, Sparkles, BrainCircuit, Zap, Loader2, Lock } from "lucide-react"; // OK
-import { cn } from "@/shared/utils/cn";
+"use client";
 
-const aiLevels = [
-  { id: "moderate", title: "Passiva", desc: "IA age apenas sob comando.", icon: Shield },
-  { id: "intermediate", title: "Assistiva", desc: "Sugestões contextuais inteligentes.", icon: Sparkles },
-  { id: "advanced", title: "Autônoma", desc: "Automação e análise proativa.", icon: BrainCircuit },
+import { Loader2, Sparkles, Lock, Zap, Bot } from "lucide-react";
+import { cn } from "@/shared/utils/cn";
+import { StepProps, AiLevel } from "@/types/onboarding";
+
+const levels: { id: AiLevel, label: string, desc: string, power: number }[] = [
+    { id: "moderate", label: "Passivo", desc: "Apenas correções quando solicitado.", power: 33 },
+    { id: "intermediate", label: "Assistente", desc: "Sugestões proativas e insights.", power: 66 },
+    { id: "advanced", label: "Autônomo", desc: "Análise preditiva e gestão ativa.", power: 100 },
 ];
 
-export default function StepAI({ data, update, onBack, onFinish, isLoading }: any) {
+export default function StepAI({ data, update, onBack, onFinish, isLoading }: StepProps) {
   
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 h-full flex flex-col">
-      <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Inteligência do Hub</h1>
-        <p className="text-gray-500 text-lg">Defina o nível de proatividade da nossa IA.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+      
+      {/* Brand Card Interativo */}
+      <div className="bg-brand-gradient rounded-2xl p-8 text-white relative overflow-hidden shadow-xl shadow-brand-purple/20 transition-all hover:scale-[1.01]">
+          {/* Background Effects */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-brand-green/20 rounded-full blur-xl translate-y-1/2 -translate-x-1/2"></div>
+          
+          <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-inner">
+                  <Bot className="w-6 h-6 text-white" />
+              </div>
+              
+              <h3 className="text-xl font-bold mb-1">Facillit AI 2.0</h3>
+              <p className="text-xs text-white/80 max-w-[200px] leading-relaxed mb-6">
+                Seu copiloto de produtividade e aprendizado.
+              </p>
+
+              {/* Slider Visual */}
+              <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden mb-2">
+                  <div 
+                    className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-700 ease-out"
+                    style={{ 
+                        width: `${levels.find(l => l.id === data.aiLevel)?.power}%` 
+                    }}
+                  ></div>
+              </div>
+              <div className="flex justify-between w-full text-[9px] font-bold uppercase tracking-widest text-white/60">
+                  <span>Min</span>
+                  <span>Max</span>
+              </div>
+          </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        {aiLevels.map((lvl) => (
-            <button
-                key={lvl.id}
-                onClick={() => update("aiLevel", lvl.id)}
-                className={cn(
-                    "flex items-center gap-6 p-5 rounded-3xl border-2 text-left transition-all",
-                    data.aiLevel === lvl.id 
-                        ? "border-brand-green bg-green-50/30 ring-1 ring-brand-green shadow-lg" 
-                        : "border-gray-100 bg-white hover:border-gray-300 hover:shadow-sm"
-                )}
-            >
-                <div className={cn("p-4 rounded-2xl shrink-0 transition-colors", data.aiLevel === lvl.id ? "bg-brand-green text-black shadow-md" : "bg-gray-100 text-gray-500")}>
-                    <lvl.icon className="w-6 h-6" />
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-900 text-lg">{lvl.title}</h3>
-                    <p className="text-sm text-gray-500">{lvl.desc}</p>
-                </div>
-            </button>
-        ))}
-      </div>
+      <div className="space-y-3">
+         <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Configurar Nível</label>
+         <div className="grid grid-cols-1 gap-3">
+            {levels.map((lvl) => (
+                <button
+                    key={lvl.id}
+                    onClick={() => update("aiLevel", lvl.id)}
+                    className={cn(
+                        "flex items-center gap-4 p-4 rounded-xl border transition-all text-left group hover:border-brand-purple/50",
+                        data.aiLevel === lvl.id 
+                            ? "border-brand-purple bg-purple-50/10 ring-1 ring-brand-purple/20" 
+                            : "border-gray-200 bg-white"
+                    )}
+                >
+                    <div className={cn(
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                        data.aiLevel === lvl.id ? "border-brand-purple" : "border-gray-300 group-hover:border-gray-400"
+                    )}>
+                        <div className={cn(
+                            "w-2.5 h-2.5 rounded-full transition-all",
+                            data.aiLevel === lvl.id ? "bg-brand-purple scale-100" : "scale-0"
+                        )} />
+                    </div>
 
-      {/* Configurações Extras */}
-      <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 space-y-6 mt-4">
-         <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-                <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600"><Zap className="w-5 h-5 fill-current" /></div>
-                <div>
-                    <h4 className="font-bold text-sm text-gray-900">Dispositivo Confiável</h4>
-                    <p className="text-xs text-gray-500">Manter login ativo por 30 dias.</p>
-                </div>
-            </div>
-            <button 
-                onClick={() => update("deviceTrusted", !data.deviceTrusted)}
-                className={cn("w-14 h-8 rounded-full flex items-center p-1 transition-colors duration-300", data.deviceTrusted ? "bg-brand-green" : "bg-gray-300")}
-            >
-                <div className={cn("w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300", data.deviceTrusted ? "translate-x-6" : "translate-x-0")} />
-            </button>
+                    <div>
+                        <span className={cn("block text-sm font-bold", data.aiLevel === lvl.id ? "text-brand-purple" : "text-gray-900")}>{lvl.label}</span>
+                        <span className="text-[11px] text-gray-500">{lvl.desc}</span>
+                    </div>
+                    
+                    {data.aiLevel === lvl.id && <Sparkles className="w-4 h-4 text-brand-purple ml-auto animate-pulse" />}
+                </button>
+            ))}
          </div>
-
-         <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-            <div className="flex items-center gap-4">
-                <div className="p-2 bg-purple-100 rounded-lg text-brand-purple"><Lock className="w-5 h-5" /></div>
-                <div>
-                    <h4 className="font-bold text-sm text-gray-900">Dados de Aprendizado</h4>
-                    <p className="text-xs text-gray-500">Permitir que a IA aprenda com seu uso.</p>
-                </div>
-            </div>
-            <button 
-                onClick={() => update("permissions", { ...data.permissions, dataAnalysis: !data.permissions.dataAnalysis })}
-                className={cn("w-14 h-8 rounded-full flex items-center p-1 transition-colors duration-300", data.permissions.dataAnalysis ? "bg-brand-purple" : "bg-gray-300")}
-            >
-                <div className={cn("w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300", data.permissions.dataAnalysis ? "translate-x-6" : "translate-x-0")} />
-            </button>
-         </div>
       </div>
 
-      <div className="flex justify-between pt-8 border-t border-gray-100 mt-auto">
-        <button onClick={onBack} disabled={isLoading} className="text-gray-500 font-bold hover:text-gray-900 px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50">Voltar</button>
+      <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 flex items-start gap-3">
+        <Lock className="w-4 h-4 text-gray-400 mt-0.5" />
+        <p className="text-[10px] text-gray-500 leading-relaxed">
+            Seus dados são criptografados (E2E). A IA processa informações contextuais apenas para personalizar sua experiência e não compartilha dados sensíveis.
+        </p>
+      </div>
+
+      <div className="flex gap-4 pt-4">
+        <button onClick={onBack} disabled={isLoading} className="w-14 h-14 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors">
+            ←
+        </button>
         <button 
-            onClick={onFinish} 
+            onClick={onFinish}
             disabled={isLoading}
-            className="bg-brand-gradient text-white font-bold py-3.5 px-10 rounded-2xl shadow-xl shadow-brand-purple/20 hover:shadow-brand-purple/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-80"
+            className="flex-1 bg-brand-dark hover:bg-black text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 py-4"
         >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin"/> : "Finalizar Setup"}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Finalizar e Acessar Hub"}
         </button>
       </div>
     </div>
