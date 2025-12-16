@@ -1,30 +1,15 @@
-// src/domains/social/profile/types.ts
-
-export type PrivacySettings = {
-  showEmail: boolean;
-  showEducation: boolean;
-  isIndexable: boolean;
-};
-
-// DTO Sanitizado para o Frontend (nunca vazar dados sensíveis)
 export type PublicProfileDTO = {
-  id: string; // User ID
+  id: string;
   username: string;
   name: string;
   avatarUrl: string | null;
   bio: string | null;
   location: string | null;
   website: string | null;
-  
-  // Stats
   followersCount: number;
   followingCount: number;
-  
-  // Estado do visualizador
-  isFollowing: boolean; // Se quem vê está seguindo
+  isFollowing: boolean;
   isOwnProfile: boolean;
-
-  // Dados condicionais (baseado em privacidade)
+  createdAt: Date; // Novo campo
   email?: string | null;
-  educationData?: any[]; // Tipo placeholder para integração futura
 };

@@ -21,6 +21,7 @@ export const getPublicProfileByUsername = cache(async (
       _count: {
         select: { followedBy: true, following: true }
       }
+      
     }
   });
 

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { User, Camera, Loader2, Save, Check, AlertCircle, Globe } from "lucide-react";
+// Adicionado ExternalLink aos imports
+import { User, Camera, Loader2, Save, Check, AlertCircle, Globe, ExternalLink } from "lucide-react";
 import { UserProfile } from "@/types/account";
 import { updateProfile } from "../actions";
 import { cn } from "@/shared/utils/cn";
+import Link from "next/link"; // Import necessário para navegação
 
 interface Props {
     user: UserProfile;
@@ -73,18 +75,32 @@ export default function ProfileTab({ user }: Props) {
                 </div>
             </div>
             
-            <button 
-                onClick={handleSubmit}
-                disabled={loading}
-                className={cn(
-                    "flex items-center justify-center gap-2 px-6 py-3 text-white text-xs font-bold rounded-xl transition-all shadow-lg",
-                    success ? "bg-green-600 hover:bg-green-700" : "bg-brand-dark hover:bg-black",
-                    "disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            {/* Área de Ações: Botão Salvar + Link Público */}
+            <div className="flex items-center gap-3">
+                {user.handle && (
+                    <Link 
+                        href={`/u/${user.handle}`}
+                        target="_blank"
+                        className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
+                    >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Ver Perfil Público
+                    </Link>
                 )}
-            >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : success ? <Check className="w-4 h-4"/> : <Save className="w-4 h-4"/>}
-                {success ? "Salvo!" : "Salvar Alterações"}
-            </button>
+
+                <button 
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className={cn(
+                        "flex items-center justify-center gap-2 px-6 py-3 text-white text-xs font-bold rounded-xl transition-all shadow-lg",
+                        success ? "bg-green-600 hover:bg-green-700" : "bg-brand-dark hover:bg-black",
+                        "disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                    )}
+                >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : success ? <Check className="w-4 h-4"/> : <Save className="w-4 h-4"/>}
+                    {success ? "Salvo!" : "Salvar Alterações"}
+                </button>
+            </div>
         </div>
 
         {errorMsg && (
@@ -124,7 +140,7 @@ export default function ProfileTab({ user }: Props) {
             {/* Coluna 2: Formulário */}
             <div className="flex-1 space-y-6">
                 
-                {/* Nome e Sobrenome (Campo Único ou Dividido conforme sua lógica, aqui mantive Nome Completo) */}
+                {/* Nome e Sobrenome */}
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nome de Exibição</label>
                     <input 
