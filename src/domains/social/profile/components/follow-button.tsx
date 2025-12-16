@@ -1,10 +1,12 @@
-// src/domains/social/profile/components/follow-button.tsx
 'use client'
 
 import { useState, useTransition } from "react";
-import { Button } from "@/shared/ui/button"; // shadcn/ui
+// Ajuste este caminho se o seu Button estiver em outro lugar, mas parece correto conforme seu erro anterior
+import { Button } from "@/shared/ui/button"; 
 import { toggleFollowAction } from "../actions";
-import { useToast } from "@/shared/hooks/use-toast"; // shadcn/ui
+// CORREÇÃO: Esta importação exige que o arquivo src/hooks/use-toast.ts exista.
+// Se der erro, rode: npx shadcn-ui@latest add toast
+import { useToast } from "@/hooks/use-toast"; 
 import { useRouter } from "next/navigation";
 
 interface FollowButtonProps {
@@ -34,8 +36,12 @@ export function FollowButton({ targetId, initialIsFollowing, isLoggedIn }: Follo
       const result = await toggleFollowAction({ targetUserId: targetId });
       
       if (result.error) {
-        setIsFollowing(previousState); // Revert
-        toast({ title: "Erro", description: result.error, variant: "destructive" });
+        setIsFollowing(previousState); // Revert a mudança se falhar
+        toast({ 
+          title: "Erro", 
+          description: result.error, 
+          variant: "destructive" 
+        });
       }
     });
   };

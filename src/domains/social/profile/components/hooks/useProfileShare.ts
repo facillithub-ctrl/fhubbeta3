@@ -1,7 +1,8 @@
 // src/domains/social/profile/components/hooks/useProfileShare.ts
 import { useState, useCallback } from 'react';
 import { generateImageBlob, shareNativeFile, preloadImage } from '@/shared/utils/export-as-image';
-import { useToast } from '@/shared/hooks/use-toast'; // Caminho correto do shadcn
+// CORREÇÃO: Ajustado o caminho para apontar para onde o hook realmente está (src/hooks/use-toast.ts)
+import { useToast } from '@/hooks/use-toast'; 
 
 export const useProfileShare = (profileName: string, avatarUrl?: string | null) => {
     const [isGenerating, setIsGenerating] = useState(false);
@@ -17,6 +18,7 @@ export const useProfileShare = (profileName: string, avatarUrl?: string | null) 
             const avatarBase64 = await preloadImage(avatarUrl);
             setSafeAvatarUrl(avatarBase64); 
         }
+        // Certifique-se que esta imagem existe em public/assets/...
         const logoBase64 = await preloadImage('/assets/images/accont.svg');
         setSafeLogoUrl(logoBase64);
     }, [avatarUrl]);
