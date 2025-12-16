@@ -3,7 +3,7 @@
 
 import { RefObject } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { PublicProfileDTO } from '../types'; // Import correto do DTO
+import { PublicProfileDTO } from '../types';
 
 export interface ShareCardStats {
     followers: number;
@@ -13,9 +13,10 @@ export interface ShareCardStats {
 export type CardTheme = 'light';
 
 interface ProfileShareCardProps {
-    profile: PublicProfileDTO; // Usando o novo tipo
+    profile: PublicProfileDTO;
     stats: ShareCardStats;
-    innerRef: RefObject<HTMLDivElement>;
+    // [CORREÇÃO] Permitir null no RefObject para compatibilidade com useRef(null)
+    innerRef: RefObject<HTMLDivElement | null>; 
     avatarOverride?: string | null;
     logoOverride?: string | null;
     isExporting?: boolean;
@@ -32,15 +33,6 @@ const BRAND = {
     gradient: 'linear-gradient(135deg, #42047e 0%, #07f49e 100%)'
 };
 
-const VerifiedBadge = () => (
-    <div className="flex items-center justify-center w-8 h-8 ml-2">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill={BRAND.green} />
-            <path d="M7.5 12L10.5 15L16.5 9" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-    </div>
-);
-
 export const ProfileShareCard = ({ 
     profile, 
     stats, 
@@ -50,7 +42,6 @@ export const ProfileShareCard = ({
     isExporting = false,
     showAvatar = true
 }: ProfileShareCardProps) => {
-    // URL Base segura
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://facillithub.com';
     const profileUrl = `${baseUrl}/u/${profile.username}`;
 
@@ -63,7 +54,8 @@ export const ProfileShareCard = ({
 
     return (
         <div
-            ref={innerRef}
+            // O cast 'as any' garante que o React aceite a ref mesmo com tipos estritos
+            ref={innerRef as any}
             className="w-[540px] h-[960px] flex flex-col items-center relative overflow-hidden font-sans box-border bg-white"
         >
             <div className="w-full h-5" style={{ background: BRAND.gradient }}></div>
@@ -96,8 +88,6 @@ export const ProfileShareCard = ({
                         <h1 className="text-[3.8rem] font-[900] leading-[0.95] tracking-tight text-[#0f0f11]">
                             {profile.name}
                         </h1>
-                        {/* Se tiver verificação no futuro, adicione aqui */}
-                        {/* <VerifiedBadge /> */}
                     </div>
                     
                     <p className="text-3xl font-bold" style={{ color: BRAND.purple }}>
@@ -160,7 +150,6 @@ export const ProfileShareCard = ({
                 <div className="w-full mt-8 bg-[#f8f9fa] rounded-3xl p-3 flex items-center justify-between border border-gray-200/60 shadow-sm">
                     <div className="flex items-center gap-5 pl-5">
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm" style={{ background: BRAND.gradient }}>
-                           {/* Icon SVG */}
                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
                                 <polyline points="10 17 15 12 10 7" />
