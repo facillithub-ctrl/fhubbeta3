@@ -19,7 +19,7 @@ export default function Home() {
 
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1]">
             Transforme ideias em <br/>
-            <span className="text-transparent bg-clip-text bg-brand-gradient">resultados reais.</span>
+            <span className="text-transparent bg-clip-text ">resultados reais.</span>
           </h1>
 
           <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">

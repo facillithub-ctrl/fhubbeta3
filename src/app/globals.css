@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    /* Base - Fundo Branco Limpo */
+    /* --- Base - Fundo Branco Limpo --- */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
-    /* Cards e Superfícies */
+    /* --- Cards e Superfícies --- */
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    /* Brand Colors (Facillit Purple & Green) */
+    /* --- Brand Colors (Facillit Purple & Green) --- */
     --primary: 262 83% 58%; /* Roxo Principal */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 142 71% 45%; /* Verde Acento */
     --secondary-foreground: 210 40% 98%;
 
-    /* Estados UI */
+    /* --- Estados UI --- */
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
     --accent: 240 4.8% 95.9%;
@@ -30,16 +30,22 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Bordas e Inputs */
+    /* --- Bordas e Inputs --- */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 262 83% 58%; /* Foco na cor da marca */
 
-    --radius: 0.75rem; /* 12px - Arredondamento moderno */
+    --radius: 0.75rem; /* 12px */
+
+    /* --- Infraestrutura de Acessibilidade (Padrões) --- */
+    --acc-font-scale: 1;
+    --acc-letter-spacing: normal;
+    --acc-line-height: 1.5;
+    --acc-saturation: 100%;
   }
 
   .dark {
-    /* Modo Escuro (Futuro) */
+    /* Modo Escuro */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -60,15 +66,55 @@
     --input: 240 3.7% 15.9%;
     --ring: 263 70% 50%;
   }
+
+  /* --- 3. ALTO CONTRASTE (Visual) --- */
+  .acc-contrast-high {
+    --background: 0 0% 0%;       /* Preto absoluto */
+    --foreground: 0 0% 100%;     /* Branco absoluto */
+    --primary: 60 100% 50%;      /* Amarelo puro (destaque) */
+    --primary-foreground: 0 0% 0%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 80%;
+    --border: 0 0% 100%;         /* Bordas brancas fortes */
+    --card: 0 0% 5%;
+    --ring: 60 100% 50%;
+  }
+
+  /* --- 4. DALTONISMO / FOCO (Saturação Zero) --- */
+  .acc-sat-0 {
+    --acc-saturation: 0%;
+  }
+
+  /* --- 1. MODO DE LEITURA (Dislexia / Cognitivo) --- */
+  .acc-mode-reading {
+    --acc-letter-spacing: 0.05em;
+    --acc-line-height: 1.8;
+    /* Fallback para fontes amigas da dislexia se disponíveis, ou sans-serif padrão mais espaçada */
+    --font-inter: "OpenDyslexic", "Comic Sans MS", "Verdana", sans-serif; 
+  }
+
+  /* --- 2. ESCALA DE FONTE --- */
+  .acc-text-lg { --acc-font-scale: 1.1; }
+  .acc-text-xl { --acc-font-scale: 1.25; }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+  
+  html {
+    /* Aplicação das variáveis de acessibilidade na raiz */
+    font-size: calc(16px * var(--acc-font-scale));
+    letter-spacing: var(--acc-letter-spacing);
+    line-height: var(--acc-line-height);
+    filter: saturate(var(--acc-saturation));
+    transition: font-size 0.3s ease, filter 0.3s ease, letter-spacing 0.3s ease;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11"; /* Inter Features */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   
   /* Melhoria de Scrollbar */
@@ -80,5 +126,27 @@
   }
   ::-webkit-scrollbar-thumb {
     @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
+  }
+
+  /* --- 5. REDUÇÃO DE MOVIMENTO --- */
+  .acc-motion-reduce *, 
+  .acc-motion-reduce *::before, 
+  .acc-motion-reduce *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  /* Utilitário restaurado: Gradiente da Marca */
+  .brand-gradient {
+    @apply bg-gradient-to-r from-brand-purple to-brand-green;
+  }
+  
+  /* Gradiente de Texto (opcional, útil para títulos) */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-purple to-brand-green;
   }
 }
