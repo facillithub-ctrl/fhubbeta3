@@ -1,10 +1,9 @@
 import * as React from "react"
 
-// Tipo para conteúdo (botões, etc)
 export type ToastActionElement = React.ReactNode
 
-// RENOMEADO: De 'ToastProps' para 'ToasterToast' para evitar colisão
-export type ToasterToast = {
+// Tipo interno seguro com todas as props
+export type ToastState = {
   id: string
   title?: string
   description?: string
@@ -15,13 +14,13 @@ export type ToasterToast = {
 }
 
 export function useToast() {
-  const [toasts, setToasts] = React.useState<ToasterToast[]>([])
+  const [toasts, setToasts] = React.useState<ToastState[]>([])
 
-  const toast = React.useCallback(({ ...props }: Omit<ToasterToast, "id" | "open" | "onOpenChange">) => {
-    // Gera ID único
+  const toast = React.useCallback(({ ...props }: Omit<ToastState, "id" | "open" | "onOpenChange">) => {
     const id = Math.random().toString(36).substring(2, 9)
     
-    const newToast: ToasterToast = { 
+    // Objeto completo com ID
+    const newToast: ToastState = { 
         id, 
         open: true, 
         onOpenChange: (open) => {
@@ -30,12 +29,12 @@ export function useToast() {
         ...props 
     }
     
-    setToasts((prev) => [...prev, newToast])
+    setToasts((prev) => [newToast, ...prev])
 
     return {
       id,
       dismiss: () => dismiss(id),
-      update: (props: Partial<ToasterToast>) => {
+      update: (props: Partial<ToastState>) => {
         setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...props } : t)))
       },
     }
