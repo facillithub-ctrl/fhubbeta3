@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { AUTH_ERRORS } from "@/lib/errors/catalog/auth";
 import { ActionResponse } from "@/lib/errors/types";
 
-// CORREÇÃO: Adicionado 'prevState' como primeiro argumento
 export async function loginAction(
   prevState: ActionResponse | null, 
   formData: FormData
@@ -17,9 +16,11 @@ export async function loginAction(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  // Validação simples
+  // Persistir email em caso de erro (senha não)
+  const formValues = { email };
+
   if (!email || !password) {
-      return { success: false, error: AUTH_ERRORS.INVALID_CREDENTIALS };
+      return { success: false, error: AUTH_ERRORS.INVALID_CREDENTIALS, inputs: formValues };
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -29,15 +30,11 @@ export async function loginAction(
 
   if (error) {
     console.error("[Login] Auth Error:", error.message);
-    
-    if (error.message.includes("Invalid login credentials")) {
-        return { success: false, error: AUTH_ERRORS.INVALID_CREDENTIALS };
-    }
-    
-    return { success: false, error: AUTH_ERRORS.INVALID_CREDENTIALS };
+    // Mesmo que o erro seja outro, retornamos credenciais inválidas por segurança,
+    // a menos que seja algo de sistema crítico
+    return { success: false, error: AUTH_ERRORS.INVALID_CREDENTIALS, inputs: formValues };
   }
 
-  // Sucesso
   revalidatePath("/", "layout");
   redirect("/account");
 }

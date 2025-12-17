@@ -19,4 +19,5 @@ export type ActionResponse<T = null> = {
   success: boolean;
   data?: T;
   error?: AppError; // Retorna o objeto completo de erro
+  inputs?: Record<string, string>;
 };

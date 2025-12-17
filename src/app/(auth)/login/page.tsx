@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react"; // MUDANÇA AQUI: useActionState do 'react'
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,11 +25,11 @@ function SubmitButton() {
 
 const initialState = {
   success: false,
-  error: undefined
+  error: undefined,
+  inputs: undefined
 };
 
 export default function LoginPage() {
-  // MUDANÇA AQUI: useActionState
   const [state, formAction] = useActionState(loginAction, initialState);
 
   return (
@@ -55,6 +55,7 @@ export default function LoginPage() {
                 </p>
             </div>
 
+            {/* Novo Componente de Erro */}
             <div className="mb-6">
                <FormError error={state?.error} />
             </div>
@@ -68,6 +69,7 @@ export default function LoginPage() {
                             name="email" 
                             type="email" 
                             required
+                            defaultValue={state?.inputs?.email} // Mantém o valor
                             className="w-full pl-4 pr-10 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300 text-gray-900"
                             placeholder="seu@email.com"
                         />
@@ -126,24 +128,19 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* --- COLUNA DIREITA: VISUAL --- */}
+      {/* --- COLUNA DIREITA (Visual) --- */}
       <div className="hidden lg:flex flex-col relative bg-white items-center justify-start pt-24 p-12 order-2 border-l border-gray-100 overflow-hidden">
-         
          <div className="relative z-10 text-center max-w-lg animate-in slide-in-from-right-8 duration-1000">
-            
             <div className="w-32 h-32 bg-white border border-gray-100 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 transform hover:scale-105 transition-transform duration-500">
                 <Image src="/assets/images/accont.svg" alt="ID" width={80} height={80} className="object-contain" priority/>
             </div>
-            
             <h2 className="text-4xl font-extrabold text-gray-900 mb-6 tracking-tight leading-[1.15]">
                 Um único ID.<br/>
                 <span className="text-brand-purple">Infinitas possibilidades.</span>
             </h2>
-            
             <p className="text-base text-gray-500 leading-relaxed font-medium mb-12 max-w-md mx-auto">
                 Conecte seus estudos, gerencie sua produtividade e acesse recursos corporativos. O Facillit Account é sua chave mestra.
             </p>
-
             <div className="flex justify-center gap-6">
                 <div className="flex flex-col items-center gap-3 group cursor-default">
                     <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center hover:border-brand-purple/20 transition-colors">
@@ -164,14 +161,11 @@ export default function LoginPage() {
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Startups</span>
                 </div>
             </div>
-
          </div>
-
          <div className="absolute bottom-10 text-[10px] text-gray-300 font-bold uppercase tracking-[0.2em]">
             Facillit Ecosystem &copy; 2025
          </div>
       </div>
-
     </div>
   );
 }

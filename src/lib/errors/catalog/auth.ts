@@ -1,45 +1,56 @@
 import { AppError } from "../types";
 
 export const AUTH_ERRORS = {
-  // Login
+  // --- LOGIN ---
   INVALID_CREDENTIALS: {
     code: 'AUTH_001',
-    message: 'E-mail ou senha incorretos. Tente novamente.',
-    techDescription: 'Falha no signInWithPassword do Supabase. Credenciais inválidas.',
+    message: 'E-mail ou senha incorretos.',
+    techDescription: 'Credenciais inválidas no signInWithPassword.',
     category: 'AUTH',
-    httpStatus: 401
   } as AppError,
   
-  USER_NOT_FOUND: {
-    code: 'AUTH_002',
-    message: 'Não encontramos uma conta com este e-mail.',
-    techDescription: 'Usuário não existe na tabela auth.users.',
-    category: 'AUTH',
-    action: { label: 'Criar uma conta', url: '/register' }
-  } as AppError,
-
-  // Registro
+  // --- REGISTRO ---
   EMAIL_ALREADY_IN_USE: {
-    code: 'AUTH_003',
-    message: 'Este e-mail já está cadastrado.',
-    techDescription: 'Tentativa de signUp com email existente.',
+    code: 'AUTH_002',
+    message: 'Este e-mail já possui uma conta Facillit.',
+    techDescription: 'User already registered (Supabase 422/400).',
     category: 'AUTH',
-    action: { label: 'Recuperar Senha', url: '/forgot-password' }
+    action: { label: 'Fazer Login', url: '/login' }
   } as AppError,
 
-  WEAK_PASSWORD: {
-    code: 'AUTH_004',
-    message: 'Sua senha é muito fraca. Use letras, números e símbolos.',
-    techDescription: 'Senha não atende aos requisitos de segurança do Supabase.',
+  PASSWORDS_DO_NOT_MATCH: {
+    code: 'AUTH_003',
+    message: 'As senhas digitadas não conferem.',
+    techDescription: 'Validação de confirmação de senha falhou no server action.',
     category: 'VALIDATION'
   } as AppError,
-  
-  // Geral
-  SESSION_EXPIRED: {
+
+  WEAK_PASSWORD_LENGTH: {
+    code: 'AUTH_004',
+    message: 'A senha deve ter no mínimo 6 caracteres.',
+    techDescription: 'Senha curta (< 6 chars).',
+    category: 'VALIDATION'
+  } as AppError,
+
+  WEAK_PASSWORD_GENERIC: {
     code: 'AUTH_005',
-    message: 'Sua sessão expirou. Faça login novamente para continuar.',
-    techDescription: 'Token JWT inválido ou expirado.',
-    category: 'AUTH',
-    action: { label: 'Ir para Login', url: '/login' }
+    message: 'Senha muito fraca. Escolha uma combinação mais segura.',
+    techDescription: 'Supabase rejeitou a senha (security policy).',
+    category: 'VALIDATION'
+  } as AppError,
+
+  // --- SISTEMA ---
+  RATE_LIMIT_EXCEEDED: {
+    code: 'SYS_429',
+    message: 'Muitas tentativas. Aguarde um momento antes de tentar novamente.',
+    techDescription: 'Supabase Rate Limit Exceeded.',
+    category: 'SYSTEM'
+  } as AppError,
+
+  GENERIC_ERROR: {
+    code: 'SYS_500',
+    message: 'Não foi possível completar a ação. Tente novamente.',
+    techDescription: 'Erro não tratado no bloco try/catch.',
+    category: 'SYSTEM'
   } as AppError,
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react"; // MUDANÇA AQUI
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Mail, Lock, Loader2 } from "lucide-react";
@@ -8,13 +8,31 @@ import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 import { FormError } from "@/shared/ui/form-error";
 import { registerAction } from "./actions";
 
+function PasswordRules() {
+    return (
+        <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Requisitos de Segurança</p>
+            <ul className="space-y-1.5">
+                <li className="flex items-center gap-2 text-xs text-gray-600">
+                    <div className="w-1 h-1 rounded-full bg-gray-400" />
+                    Mínimo de 6 caracteres
+                </li>
+                <li className="flex items-center gap-2 text-xs text-gray-600">
+                    <div className="w-1 h-1 rounded-full bg-gray-400" />
+                    Sugerimos: Letras e números
+                </li>
+            </ul>
+        </div>
+    )
+}
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <button 
         type="submit" 
         disabled={pending}
-        className="w-full mt-6 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+        className="w-full mt-4 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
     >
         {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Criar ID Gratuito"}
         {!pending && <ArrowRight className="w-4 h-4" />}
@@ -24,11 +42,11 @@ function SubmitButton() {
 
 const initialState = {
   success: false,
-  error: undefined
+  error: undefined,
+  inputs: undefined
 };
 
 export default function RegisterPage() {
-  // MUDANÇA AQUI
   const [state, formAction] = useActionState(registerAction, initialState);
 
   return (
@@ -36,9 +54,9 @@ export default function RegisterPage() {
       
       {/* --- COLUNA ESQUERDA: FORMULÁRIO (50%) --- */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 relative z-10 overflow-y-auto">
-        <div className="w-full max-w-[440px] animate-in slide-in-from-left-6 duration-700 py-10">
+        <div className="w-full max-w-[440px] animate-in slide-in-from-left-6 duration-700 py-6">
           
-          <div className="mb-10">
+          <div className="mb-8">
              <div className="inline-flex items-center gap-3 mb-6 group cursor-default">
                 <div className="w-10 h-10 bg-brand-purple text-white rounded-xl flex items-center justify-center font-bold text-xl transition-transform group-hover:scale-105">
                     F
@@ -57,11 +75,11 @@ export default function RegisterPage() {
              </p>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 min-h-[20px]">
               <FormError error={state?.error} />
           </div>
 
-          <form action={formAction} className="space-y-5">
+          <form action={formAction} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                       <label htmlFor="firstName" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nome</label>
@@ -70,6 +88,7 @@ export default function RegisterPage() {
                           name="firstName"
                           type="text" 
                           required
+                          defaultValue={state?.inputs?.firstName}
                           className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300"
                           placeholder="Seu nome"
                       />
@@ -81,6 +100,7 @@ export default function RegisterPage() {
                           name="lastName"
                           type="text" 
                           required
+                          defaultValue={state?.inputs?.lastName}
                           className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
                           placeholder="Sobrenome"
                       />
@@ -95,6 +115,7 @@ export default function RegisterPage() {
                         name="email"
                         type="email" 
                         required
+                        defaultValue={state?.inputs?.email}
                         className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
                         placeholder="nome@exemplo.com"
                     />
@@ -102,41 +123,45 @@ export default function RegisterPage() {
                   </div>
               </div>
 
-              <div className="space-y-1.5 group">
-                  <label htmlFor="password" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Criar Senha</label>
-                  <div className="relative">
-                    <input 
-                        id="password"
-                        name="password"
-                        type="password" 
-                        required 
-                        minLength={6}
-                        className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
-                        placeholder="Mínimo 6 caracteres"
-                    />
-                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5 group">
+                      <label htmlFor="password" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Senha</label>
+                      <div className="relative">
+                        <input 
+                            id="password"
+                            name="password"
+                            type="password" 
+                            required 
+                            minLength={6}
+                            className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
+                            placeholder="******"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                      </div>
                   </div>
-              </div>
 
-               <div className="space-y-1.5 group">
-                  <label htmlFor="confirmPassword" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Confirmar Senha</label>
-                  <div className="relative">
-                    <input 
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password" 
-                        required 
-                        className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
-                        placeholder="Repita a senha"
-                    />
-                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                  <div className="space-y-1.5 group">
+                      <label htmlFor="confirmPassword" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Confirmar</label>
+                      <div className="relative">
+                        <input 
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password" 
+                            required 
+                            className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
+                            placeholder="******"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                      </div>
                   </div>
               </div>
+              
+              <PasswordRules />
 
               <SubmitButton />
           </form>
 
-           <div className="mt-10 pt-8 border-t border-gray-100">
+           <div className="mt-8 pt-8 border-t border-gray-100">
               <p className="text-xs text-center text-gray-500 mb-8">
                 Já possui identidade? <Link href="/login" className="font-bold text-brand-purple hover:text-brand-dark hover:underline transition-colors">Fazer Login</Link>
               </p>
@@ -150,7 +175,6 @@ export default function RegisterPage() {
 
       {/* --- COLUNA DIREITA: VISUAL --- */}
       <div className="hidden lg:flex flex-col relative bg-white items-center justify-start pt-20 px-12 order-2 border-l border-gray-100 overflow-hidden min-h-screen">
-         
          <div className="relative z-10 w-full max-w-lg mb-12 animate-in slide-in-from-top-8 duration-1000">
             <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight leading-snug mb-4">
                 &ldquo;A simplicidade é o grau máximo de sofisticação. O Facillit unifica tudo o que você precisa em um só lugar.&rdquo;
@@ -161,60 +185,27 @@ export default function RegisterPage() {
             </div>
          </div>
 
-         {/* ELEMENTOS GRÁFICOS */}
+         {/* Cards decorativos */}
          <div className="w-full max-w-lg grid grid-cols-2 gap-4 relative z-10">
-            {/* Card 1 */}
             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
                 <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-brand-purple group-hover:scale-105 transition-transform">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                     <span className="font-bold text-lg">H</span>
                 </div>
                 <div>
                     <h4 className="font-bold text-gray-900 text-sm">Hub Central</h4>
-                    <p className="text-[11px] text-gray-500 mt-1">Todos os seus apps em um dashboard unificado.</p>
+                    <p className="text-[11px] text-gray-500 mt-1">Todos os seus apps em um dashboard.</p>
                 </div>
             </div>
-
-            {/* Card 2 */}
-            <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group translate-y-8">
+             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group translate-y-8">
                 <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-green-600 group-hover:scale-105 transition-transform">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                     <span className="font-bold text-lg">C</span>
                 </div>
                 <div>
                     <h4 className="font-bold text-gray-900 text-sm">Colaboração</h4>
-                    <p className="text-[11px] text-gray-500 mt-1">Conecte-se com times, escolas e mentores.</p>
-                </div>
-            </div>
-
-             {/* Card 3 */}
-             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
-                <div className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                </div>
-                <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Performance</h4>
-                    <p className="text-[11px] text-gray-500 mt-1">Ferramentas otimizadas para alta produtividade.</p>
-                </div>
-            </div>
-
-            {/* Card 4 */}
-             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col justify-center items-start gap-2 group translate-y-8">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-gray-100">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span className="text-[10px] font-bold text-gray-500 uppercase">System Online</span>
-                </div>
-                <div className="flex -space-x-3 mt-2">
-                     {[1,2,3].map(i => (
-                         <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-white flex items-center justify-center text-[9px] font-bold text-gray-400 ring-1 ring-gray-100">
-                            U{i}
-                         </div>
-                     ))}
-                     <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-900 text-white flex items-center justify-center text-[9px] font-bold">
-                        +1M
-                     </div>
+                    <p className="text-[11px] text-gray-500 mt-1">Conecte-se com times e escolas.</p>
                 </div>
             </div>
          </div>
-
       </div>
     </div>
   );
