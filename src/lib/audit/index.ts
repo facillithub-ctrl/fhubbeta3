@@ -10,7 +10,6 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  // CORREÇÃO: 'unknown' aceita os dados do onboarding corretamente
   details?: Record<string, unknown>; 
   userId?: string; 
 }
