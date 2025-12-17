@@ -18,7 +18,6 @@ export function useToast() {
   const [toasts, setToasts] = React.useState<ToastProps[]>([])
 
   const toast = ({ ...props }: ToastArgs) => {
-    // Gera um ID único para cada toast para o React não se perder
     const id = Math.random().toString(36).substring(2, 9)
     const newToast: ToastProps = { id, ...props, open: true }
     
@@ -27,8 +26,8 @@ export function useToast() {
     return {
       id,
       dismiss: () => dismiss(id),
-      update: (updatedProps: ToastArgs) => {
-        setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...updatedProps } : t)))
+      update: (props: ToastArgs) => {
+        setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...props } : t)))
       },
     }
   }

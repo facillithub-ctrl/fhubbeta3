@@ -10,8 +10,7 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  // CORREÇÃO: Alterado de 'null' para 'any' para aceitar objetos de detalhes reais
-  details?: Record<string, any>; 
+  details?: Record<string, null>; // CORRIGIDO: Permite qualquer valor, não apenas null
   userId?: string; 
 }
 
@@ -26,7 +25,6 @@ export async function logActivity({ action, details, userId }: LogOptions) {
     }
 
     if (!targetUserId) {
-        // Log silencioso para não quebrar o fluxo se não houver user
         return;
     }
 
