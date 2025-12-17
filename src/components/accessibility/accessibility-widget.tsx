@@ -8,11 +8,11 @@ import { Switch } from "@/shared/ui/switch";
 import { 
   Accessibility, RefreshCw, X, Sun, Moon, Laptop, Eye, Type, 
   Activity, Palette, Check, ChevronDown, Hand, MousePointer2, 
-  Image as ImageIcon, Focus, Languages, Ear, Brain, Lock, Globe,
-  MessageSquare, Keyboard, Fingerprint, Volume2
+  Image as ImageIcon, Focus, Languages, MessageSquare, Keyboard, Fingerprint, Volume2, Brain
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
+// --- Filtros SVG Invisíveis ---
 const SVGFilters = () => (
   <svg className="sr-only" aria-hidden="true">
     <defs>
@@ -45,15 +45,16 @@ export function AccessibilityWidget() {
           <Button
             size="icon"
             className="fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.2)] bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-300 border-2 border-background ring-4 ring-primary/10"
-            aria-label="Ferramentas de Acessibilidade"
+            aria-label="Acessibilidade"
           >
             <Accessibility className="h-7 w-7" />
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-[850px] w-[95vw] p-0 border border-border shadow-2xl rounded-2xl gap-0 h-[85vh] md:h-[650px] flex flex-col overflow-hidden bg-background">
+        {/* MODAL CENTRALIZADO COM SCROLL INTERNO */}
+        <DialogContent className="max-w-[850px] w-[95vw] max-h-[85vh] h-[650px] p-0 border border-border shadow-2xl rounded-2xl gap-0 bg-background flex flex-col overflow-hidden">
           
-          <div className="flex items-center justify-between p-4 md:p-5 border-b border-border bg-background z-20 shrink-0">
+          <div className="flex items-center justify-between p-5 border-b border-border bg-background z-20 shrink-0">
               <div className="flex items-center gap-3">
                   <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
                         <Accessibility className="h-5 w-5" />
@@ -70,10 +71,10 @@ export function AccessibilityWidget() {
               </DialogClose>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar md:grid md:grid-cols-[1.6fr_1fr] bg-background">
+          <div className="flex-1 overflow-hidden md:grid md:grid-cols-[1.6fr_1fr] bg-background">
             
-            {/* === COLUNA 1: CONTROLES (Fundo Branco) === */}
-            <div className="p-5 md:p-6 space-y-8 bg-background">
+            {/* === COLUNA 1: CONTROLES (Scrollable) === */}
+            <div className="h-full overflow-y-auto custom-scrollbar p-6 space-y-8 bg-background">
                 
                 <section className="space-y-4">
                     <SectionHeader icon={<Palette className="h-4 w-4" />} title="Visual & Cores" />
@@ -224,30 +225,28 @@ export function AccessibilityWidget() {
                 </div>
             </div>
 
-            {/* === COLUNA 2: EDUCATIVA (Fundo Branco) === */}
-            <div className="bg-background md:border-l border-border relative flex flex-col">
-                <div className="p-6 md:p-8 space-y-6">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/20 ring-1 ring-border text-primary">
-                        <Accessibility className="h-6 w-6" />
-                    </div>
-                    
-                    <div>
-                        <h2 className="text-xl font-bold text-foreground mb-2 tracking-tight">
-                            Design Universal
-                        </h2>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            O Facillit Hub segue as diretrizes <strong>WCAG 2.1 nível AA</strong>. Nosso objetivo é garantir que a plataforma seja perceptível, operável e compreensível para todos.
-                        </p>
-                    </div>
-
-                    <div className="space-y-4 pt-2">
-                        <InfoItem title="Visão" desc="Filtros para daltonismo (Protanopia, Deuteranopia, Tritanopia) e alto contraste para baixa visão." />
-                        <InfoItem title="Cognição" desc="Fontes 'OpenDyslexic', espaçamento de texto ajustável e redução de distrações visuais." />
-                        <InfoItem title="Motor" desc="Navegação otimizada para teclado, áreas de clique ampliadas e redução de movimentos." />
-                    </div>
+            {/* === COLUNA 2: EDUCATIVA (Fixa Desktop, Scroll Mobile) === */}
+            <div className="bg-background md:border-l border-border relative flex flex-col p-6 md:p-8 space-y-6">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/20 ring-1 ring-border text-primary shrink-0">
+                    <Accessibility className="h-6 w-6" />
+                </div>
+                
+                <div>
+                    <h2 className="text-xl font-bold text-foreground mb-2 tracking-tight">
+                        Design Universal
+                    </h2>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        O Facillit Hub segue as diretrizes <strong>WCAG 2.1 nível AA</strong>. Nosso objetivo é garantir que a plataforma seja perceptível, operável e compreensível para todos.
+                    </p>
                 </div>
 
-                <div className="mt-auto p-4 border-t border-border text-center bg-background">
+                <div className="space-y-4 pt-2">
+                    <InfoItem title="Visão" desc="Filtros para daltonismo (Protanopia, Deuteranopia, Tritanopia) e alto contraste para baixa visão." />
+                    <InfoItem title="Cognição" desc="Fontes 'OpenDyslexic', espaçamento de texto ajustável e redução de distrações visuais." />
+                    <InfoItem title="Motor" desc="Navegação otimizada para teclado, áreas de clique ampliadas e redução de movimentos." />
+                </div>
+
+                <div className="mt-auto pt-8 border-t border-border text-center">
                     <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">
                         Powered by Facillit A11y Engine
                     </p>

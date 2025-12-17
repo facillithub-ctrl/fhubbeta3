@@ -10,7 +10,7 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  // CORREÇÃO: 'unknown' aceita qualquer objeto JSON, resolvendo o erro de tipo
+  // CORREÇÃO: 'unknown' aceita os dados do onboarding corretamente
   details?: Record<string, unknown>; 
   userId?: string; 
 }
@@ -25,9 +25,7 @@ export async function logActivity({ action, details, userId }: LogOptions) {
         targetUserId = user?.id;
     }
 
-    if (!targetUserId) {
-        return;
-    }
+    if (!targetUserId) return;
 
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for") || "unknown";
