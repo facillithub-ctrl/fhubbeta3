@@ -94,7 +94,7 @@ export default function StepAI({ data, update, onBack, onFinish, isLoading }: St
             ←
         </button>
         <button 
-            onClick={onFinish}
+            onClick={() => onFinish?.()} 
             disabled={isLoading}
             className="flex-1 bg-brand-dark hover:bg-black text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 py-4"
         >
