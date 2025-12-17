@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccessibility } from "@/shared/providers/accessibility-provider";
 import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogTitle } from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogTitle, DialogDescription } from "@/shared/ui/dialog";
 import { Switch } from "@/shared/ui/switch";
 import { 
   Accessibility, RefreshCw, X, Sun, Moon, Laptop, Eye, Type, 
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
-// --- Filtros SVG Invisíveis ---
+// --- Filtros SVG ---
 const SVGFilters = () => (
   <svg className="sr-only" aria-hidden="true">
     <defs>
@@ -52,10 +52,13 @@ export function AccessibilityWidget() {
           </Button>
         </DialogTrigger>
 
-        {/* MODAL COMPACTO (Altura fixa menor no desktop) */}
-        <DialogContent className="max-w-[850px] w-[95vw] p-0 border border-border shadow-2xl rounded-2xl gap-0 h-[85vh] md:h-[550px] flex flex-col overflow-hidden bg-background">
-          
-          <div className="flex items-center justify-between p-4 border-b border-border bg-background z-20 shrink-0">
+        <DialogContent className="max-w-[850px] w-[95vw] p-0 border border-border shadow-2xl rounded-2xl gap-0 h-[85vh] md:h-[650px] flex flex-col overflow-hidden bg-background" aria-describedby="acc-desc">
+          {/* Adicionado Description Oculto para silenciar erro do console */}
+          <DialogDescription id="acc-desc" className="sr-only">
+            Painel de controle de acessibilidade para ajustar cores, fontes e movimento.
+          </DialogDescription>
+
+          <div className="flex items-center justify-between p-4 md:p-5 border-b border-border bg-background z-20 shrink-0">
               <div className="flex items-center gap-3">
                   <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
                         <Accessibility className="h-5 w-5" />
@@ -74,7 +77,7 @@ export function AccessibilityWidget() {
 
           <div className="flex-1 overflow-hidden md:grid md:grid-cols-[1.6fr_1fr] bg-background">
             
-            {/* === COLUNA 1: CONTROLES (Scrollable) === */}
+            {/* === COLUNA 1: CONTROLES === */}
             <div className="h-full overflow-y-auto custom-scrollbar p-5 space-y-8 bg-background">
                 
                 <section className="space-y-4">
@@ -181,7 +184,7 @@ export function AccessibilityWidget() {
                 </div>
             </div>
 
-            {/* === COLUNA 2: EDUCATIVA (AGORA COM SCROLL) === */}
+            {/* === COLUNA 2: EDUCATIVA === */}
             <div className="bg-background md:border-l border-border relative flex flex-col h-full overflow-hidden">
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 space-y-6">
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/20 ring-1 ring-border text-primary shrink-0">

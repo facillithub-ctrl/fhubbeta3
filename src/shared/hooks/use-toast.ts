@@ -1,51 +1,42 @@
 import * as React from "react"
 
-// --- Definições de Tipo Novas e Claras ---
-
+// Tipo para conteúdo (botões, etc)
 export type ToastActionElement = React.ReactNode
 
-// O que você envia ao chamar a função toast()
-export type ToastInput = {
+// RENOMEADO: De 'ToastProps' para 'ToasterToast' para evitar colisão
+export type ToasterToast = {
+  id: string
   title?: string
   description?: string
   action?: ToastActionElement
   variant?: "default" | "destructive"
-  duration?: number
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
-
-// O que o componente Toaster lê (inclui ID obrigatório)
-export type Toast = ToastInput & {
-  id: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-// Para compatibilidade com o Toaster existente
-export type ToastProps = Toast 
 
 export function useToast() {
-  const [toasts, setToasts] = React.useState<Toast[]>([])
+  const [toasts, setToasts] = React.useState<ToasterToast[]>([])
 
-  // Função disparadora blindada
-  const toast = React.useCallback((props: ToastInput) => {
-    const id = Math.random().toString(36).slice(2)
+  const toast = React.useCallback(({ ...props }: Omit<ToasterToast, "id" | "open" | "onOpenChange">) => {
+    // Gera ID único
+    const id = Math.random().toString(36).substring(2, 9)
     
-    const newToast: Toast = {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss(id)
-      },
+    const newToast: ToasterToast = { 
+        id, 
+        open: true, 
+        onOpenChange: (open) => {
+            if (!open) dismiss(id)
+        },
+        ...props 
     }
-
-    setToasts((prev) => [newToast, ...prev])
+    
+    setToasts((prev) => [...prev, newToast])
 
     return {
       id,
       dismiss: () => dismiss(id),
-      update: (updateProps: ToastInput) => {
-        setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...updateProps } : t)))
+      update: (props: Partial<ToasterToast>) => {
+        setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...props } : t)))
       },
     }
   }, [])
