@@ -4,73 +4,81 @@ import { createClient } from "@/lib/supabase/server";
 import { OnboardingData, ProfileType } from "@/types/onboarding";
 import { AccountRole } from "@/types/account";
 import { revalidatePath } from "next/cache";
+import { ONBOARDING_ERRORS } from "@/lib/errors/catalog/onboarding";
+import { AUTH_ERRORS } from "@/lib/errors/catalog/auth";
+import { ActionResponse } from "@/lib/errors/types";
 
-// Função Helper para Mapear Enum
+// Helper Mapeamento
 const mapProfileTypeToAccountRole = (type: ProfileType): AccountRole => {
     switch (type) {
         case 'education': return 'student';
         case 'schools': return 'institution';
         case 'enterprise': return 'institution';
-        case 'startups': return 'institution'; // ou 'individual' dependendo da regra
+        case 'startups': return 'institution';
         case 'individuals': return 'individual';
         default: return 'individual';
     }
 };
 
-export async function completeOnboarding(data: OnboardingData) {
+export async function completeOnboarding(data: OnboardingData): Promise<ActionResponse> {
   const supabase = await createClient();
   
+  // 1. Validação de Sessão
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Usuário não autenticado." };
+  if (!user) {
+      return { success: false, error: AUTH_ERRORS.SESSION_EXPIRED };
+  }
+
+  // 2. Validação Básica de Dados
+  if (!data.handle || !data.profileTypes.length) {
+      return { success: false, error: ONBOARDING_ERRORS.MISSING_DATA };
+  }
 
   let finalAvatarUrl = null;
 
-  // 1. Upload de Imagem
+  // 3. Upload de Imagem
   if (data.profileImage && data.profileImage.startsWith('data:image')) {
     try {
         const fileExt = 'png'; 
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        // Remove cabeçalho do base64
         const base64Data = data.profileImage.split(',')[1];
         const buffer = Buffer.from(base64Data, 'base64');
 
         const { data: uploadData, error: uploadError } = await supabase
             .storage
             .from('avatars')
-            .upload(fileName, buffer, {
-                contentType: 'image/png',
-                upsert: true
-            });
+            .upload(fileName, buffer, { contentType: 'image/png', upsert: true });
 
-        if (!uploadError && uploadData) {
+        if (uploadError) {
+            console.error(`[ONB_002] Storage Error:`, uploadError);
+            return { success: false, error: ONBOARDING_ERRORS.IMAGE_UPLOAD_FAILED };
+        }
+
+        if (uploadData) {
             const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
             finalAvatarUrl = publicUrl;
         }
     } catch (e) {
-        console.error("Erro no upload de imagem:", e);
+        console.error("Erro crítico no upload:", e);
+        return { success: false, error: ONBOARDING_ERRORS.IMAGE_UPLOAD_FAILED };
     }
   }
 
-  // 2. Mapeamento Correto do Role
-  // Pegamos o primeiro perfil escolhido como principal para definir a role da conta
+  // 4. Preparação dos Dados
   const mainProfile = data.profileTypes[0] || 'individuals';
   const accountRole = mapProfileTypeToAccountRole(mainProfile);
 
-  // 3. Atualizar Perfil
+  // 5. Atualização no Banco
   const { error: profileError } = await supabase
     .from('profiles')
     .update({
         handle: data.handle,
-        avatar_url: finalAvatarUrl || data.profileImage,
+        avatar_url: finalAvatarUrl || data.profileImage, // Usa a nova ou mantém a antiga se for URL
         pronouns: data.pronouns,
         gender: data.gender,
-        // Se 'sexuality' não existir no banco, adicione-o apenas se tiver certeza
-        // Caso contrário, coloque em um campo JSONB de metadados se existir, ou ignore
-        // Vou assumir que 'sexuality' não existe na tabela profiles baseada no PDF,
-        // então não estou enviando para evitar erro. Se existir, descomente abaixo:
-        // sexuality: data.sexuality, 
-        
         address: data.address,
-        account_type: accountRole, // AQUI ESTAVA O ERRO, AGORA ESTÁ MAPEADO
+        account_type: accountRole,
         onboarding_completed: true,
         ai_level: data.aiLevel,
         ai_preferences: {
@@ -87,8 +95,13 @@ export async function completeOnboarding(data: OnboardingData) {
     .eq('id', user.id);
 
   if (profileError) {
-      console.error("Erro ao salvar perfil:", profileError);
-      return { success: false, error: profileError.message };
+      // Verifica erro de duplicidade (Postgres Error 23505)
+      if (profileError.code === '23505') {
+          return { success: false, error: ONBOARDING_ERRORS.HANDLE_ALREADY_EXISTS };
+      }
+      
+      console.error(`[ONB_003] DB Error:`, profileError);
+      return { success: false, error: ONBOARDING_ERRORS.PROFILE_UPDATE_FAILED };
   }
 
   revalidatePath('/account');

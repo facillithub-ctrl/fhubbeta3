@@ -1,49 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react"; // MUDANÇA AQUI: useActionState do 'react'
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { ArrowRight, Mail, Lock, Loader2, AlertCircle, ArrowLeft, Check, GraduationCap, Briefcase, Rocket } from "lucide-react";
+import { ArrowRight, Mail, Lock, Loader2, ArrowLeft, Check, GraduationCap, Briefcase, Rocket } from "lucide-react";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
+import { FormError } from "@/shared/ui/form-error";
+import { loginAction } from "./actions";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button 
+        type="submit" 
+        disabled={pending}
+        className="w-full bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+    >
+        {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Acessar Hub"}
+        {!pending && <ArrowRight className="w-4 h-4" />}
+    </button>
+  );
+}
+
+const initialState = {
+  success: false,
+  error: undefined
+};
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  const supabase = createClient();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
-
-      // [CORREÇÃO] Forçar refresh antes do push para atualizar o estado de autenticação no servidor
-      router.refresh(); 
-      router.push("/account"); 
-      
-    } catch (err: unknown) {
-      console.error("Erro no login:", err);
-      let message = "Credenciais inválidas.";
-      if (err instanceof Error) message = err.message;
-      setError(message);
-      setLoading(false); // Só parar o loading se der erro. Se for sucesso, deixa carregando até redirecionar.
-    }
-    // Nota: Removi o finally { setLoading(false) } para evitar "flash" do botão voltando ao normal antes da página mudar
-  };
+  // MUDANÇA AQUI: useActionState
+  const [state, formAction] = useActionState(loginAction, initialState);
 
   return (
     <div className="min-h-screen bg-white w-full grid grid-cols-1 lg:grid-cols-2 font-sans text-gray-900">
@@ -68,22 +55,19 @@ export default function LoginPage() {
                 </p>
             </div>
 
-            {error && (
-                <div className="mb-6 p-4 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-bold flex items-start gap-3 animate-in fade-in shadow-sm">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> 
-                    <span>{error}</span>
-                </div>
-            )}
+            <div className="mb-6">
+               <FormError error={state?.error} />
+            </div>
 
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form action={formAction} className="space-y-5">
                 <div className="space-y-1.5 group">
-                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">E-mail ou ID</label>
+                     <label htmlFor="email" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">E-mail ou ID</label>
                      <div className="relative">
                         <input 
+                            id="email"
+                            name="email" 
                             type="email" 
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full pl-4 pr-10 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300 text-gray-900"
                             placeholder="seu@email.com"
                         />
@@ -92,13 +76,13 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-1.5 group">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Senha</label>
+                    <label htmlFor="password" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Senha</label>
                     <div className="relative">
                         <input 
+                            id="password"
+                            name="password"
                             type="password" 
                             required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
                             className="w-full pl-4 pr-10 py-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300 text-gray-900"
                             placeholder="••••••••"
                         />
@@ -109,7 +93,7 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between py-1">
                     <label className="flex items-center gap-2 cursor-pointer group select-none">
                         <div className="relative flex items-center">
-                            <input type="checkbox" className="peer sr-only" />
+                            <input type="checkbox" name="remember" className="peer sr-only" />
                             <div className="w-4 h-4 border border-gray-300 rounded peer-checked:bg-brand-purple peer-checked:border-brand-purple transition-all bg-white"></div>
                             <span className="absolute text-brand-purple opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none flex items-center justify-center inset-0">
                                 <Check className="w-3 h-3 text-white" />
@@ -118,19 +102,12 @@ export default function LoginPage() {
                         <span className="text-xs font-bold text-gray-500 group-hover:text-gray-800 transition-colors">Manter conectado</span>
                     </label>
 
-                    <Link href="/forgot" className="text-xs font-bold text-brand-purple hover:text-brand-dark hover:underline transition-colors">
+                    <Link href="/forgot-password" className="text-xs font-bold text-brand-purple hover:text-brand-dark hover:underline transition-colors">
                         Recuperar senha
                     </Link>
                 </div>
 
-                <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Acessar Hub"}
-                    {!loading && <ArrowRight className="w-4 h-4" />}
-                </button>
+                <SubmitButton />
             </form>
 
             <div className="mt-10 pt-8 border-t border-gray-100 text-center">

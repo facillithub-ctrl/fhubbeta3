@@ -1,60 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react"; // MUDANÇA AQUI
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-// CORREÇÃO: Importar da nova estrutura
-import { createClient } from "@/lib/supabase/client";
-import { ArrowRight, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
+import { ArrowRight, Mail, Lock, Loader2 } from "lucide-react";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
+import { FormError } from "@/shared/ui/form-error";
+import { registerAction } from "./actions";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button 
+        type="submit" 
+        disabled={pending}
+        className="w-full mt-6 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+    >
+        {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Criar ID Gratuito"}
+        {!pending && <ArrowRight className="w-4 h-4" />}
+    </button>
+  );
+}
+
+const initialState = {
+  success: false,
+  error: undefined
+};
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // CORREÇÃO: Instanciar o cliente
-  const supabase = createClient();
-
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: ""
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: `${formData.firstName} ${formData.lastName}`,
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-      if (data.user) router.push("/onboarding");
-      
-    } catch (err: unknown) {
-      console.error("Erro no registro:", err);
-      let message = "Erro ao criar conta. Tente novamente.";
-      if (err instanceof Error) message = err.message;
-      else if (typeof err === "string") message = err;
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // MUDANÇA AQUI
+  const [state, formAction] = useActionState(registerAction, initialState);
 
   return (
     <div className="min-h-screen w-full flex bg-white font-sans text-gray-900 overflow-hidden">
@@ -82,31 +57,30 @@ export default function RegisterPage() {
              </p>
           </div>
 
-          {error && (
-              <div className="mb-6 p-4 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-bold flex items-start gap-3 animate-in fade-in slide-in-from-top-2 shadow-sm">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> 
-                  <span className="leading-relaxed">{error}</span>
-              </div>
-          )}
+          <div className="mb-6">
+              <FormError error={state?.error} />
+          </div>
 
-          <form onSubmit={handleRegister} className="space-y-5">
+          <form action={formAction} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nome</label>
+                      <label htmlFor="firstName" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nome</label>
                       <input 
-                          type="text" required
-                          value={formData.firstName}
-                          onChange={(e) => handleInputChange("firstName", e.target.value)}
+                          id="firstName"
+                          name="firstName"
+                          type="text" 
+                          required
                           className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300"
                           placeholder="Seu nome"
                       />
                   </div>
                   <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sobrenome</label>
+                      <label htmlFor="lastName" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sobrenome</label>
                       <input 
-                          type="text" required
-                          value={formData.lastName}
-                          onChange={(e) => handleInputChange("lastName", e.target.value)}
+                          id="lastName"
+                          name="lastName"
+                          type="text" 
+                          required
                           className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
                           placeholder="Sobrenome"
                       />
@@ -114,12 +88,13 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5 group">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">E-mail Principal</label>
+                  <label htmlFor="email" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">E-mail Principal</label>
                   <div className="relative">
                     <input 
-                        type="email" required
-                        value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        id="email"
+                        name="email"
+                        type="email" 
+                        required
                         className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
                         placeholder="nome@exemplo.com"
                     />
@@ -128,12 +103,14 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5 group">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Criar Senha</label>
+                  <label htmlFor="password" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Criar Senha</label>
                   <div className="relative">
                     <input 
-                        type="password" required minLength={6}
-                        value={formData.password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        id="password"
+                        name="password"
+                        type="password" 
+                        required 
+                        minLength={6}
                         className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
                         placeholder="Mínimo 6 caracteres"
                     />
@@ -141,13 +118,22 @@ export default function RegisterPage() {
                   </div>
               </div>
 
-              <button 
-                  type="submit" disabled={loading}
-                  className="w-full mt-6 bg-brand-dark hover:bg-black text-white font-bold text-sm py-4 rounded-xl shadow-none hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Criar ID Gratuito"}
-                  {!loading && <ArrowRight className="w-4 h-4" />}
-              </button>
+               <div className="space-y-1.5 group">
+                  <label htmlFor="confirmPassword" className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-purple transition-colors">Confirmar Senha</label>
+                  <div className="relative">
+                    <input 
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password" 
+                        required 
+                        className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-brand-purple focus:border-brand-purple transition-all placeholder:text-gray-300 hover:border-gray-300" 
+                        placeholder="Repita a senha"
+                    />
+                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-brand-purple transition-colors pointer-events-none" />
+                  </div>
+              </div>
+
+              <SubmitButton />
           </form>
 
            <div className="mt-10 pt-8 border-t border-gray-100">
@@ -162,10 +148,9 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* --- COLUNA DIREITA: VISUAL (Pure White) --- */}
+      {/* --- COLUNA DIREITA: VISUAL --- */}
       <div className="hidden lg:flex flex-col relative bg-white items-center justify-start pt-20 px-12 order-2 border-l border-gray-100 overflow-hidden min-h-screen">
          
-         {/* TEXTO NO TOPO */}
          <div className="relative z-10 w-full max-w-lg mb-12 animate-in slide-in-from-top-8 duration-1000">
             <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight leading-snug mb-4">
                 &ldquo;A simplicidade é o grau máximo de sofisticação. O Facillit unifica tudo o que você precisa em um só lugar.&rdquo;
@@ -176,7 +161,7 @@ export default function RegisterPage() {
             </div>
          </div>
 
-         {/* ELEMENTOS GRÁFICOS (Clean Border Cards) */}
+         {/* ELEMENTOS GRÁFICOS */}
          <div className="w-full max-w-lg grid grid-cols-2 gap-4 relative z-10">
             {/* Card 1 */}
             <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col gap-3 group">
@@ -211,7 +196,7 @@ export default function RegisterPage() {
                 </div>
             </div>
 
-            {/* Card 4 - Status */}
+            {/* Card 4 */}
              <div className="p-6 rounded-3xl border border-gray-100 bg-white hover:border-gray-200 transition-colors duration-500 flex flex-col justify-center items-start gap-2 group translate-y-8">
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-gray-100">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>

@@ -1,4 +1,3 @@
-// src/shared/ui/secure-card.tsx
 import {
   ShieldCheck,
   Lock,
@@ -7,21 +6,15 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
+import { cn } from "@/shared/utils/cn"; // Importar o utilitário cn
 
 export function SecureEnvironmentCard() {
   return (
     <section
       aria-label="Ambiente seguro FacillIt"
-      className="
-        w-full
-        rounded-2xl
-        border
-        border-gray-200
-        bg-white
-        p-5
-        shadow-sm
-        sm:p-6
-      "
+      className={cn(
+        "w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
+      )}
     >
       {/* Header */}
       <header className="flex items-start gap-4 pb-4 border-b border-gray-200">
@@ -90,15 +83,9 @@ export function SecureEnvironmentCard() {
 
         <button
           type="button"
-          className="
-            inline-flex
-            items-center
-            gap-1
-            text-xs
-            font-semibold
-            text-brand-purple
-            hover:underline
-          "
+          className={cn(
+            "inline-flex items-center gap-1 text-xs font-semibold text-brand-purple hover:underline"
+          )}
         >
           Saiba mais
           <ArrowRight className="h-3 w-3" />
@@ -107,8 +94,6 @@ export function SecureEnvironmentCard() {
     </section>
   );
 }
-
-/* ============================ */
 
 function SecurityBadge({
   icon: Icon,

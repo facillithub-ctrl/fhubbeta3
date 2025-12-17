@@ -7,6 +7,8 @@ import { cn } from "@/shared/utils/cn";
 import { OnboardingData } from "@/types/onboarding";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 import { completeOnboarding } from "./actions";
+import { FormError } from "@/shared/ui/form-error"; // Importe o componente
+import { AppError } from "@/lib/errors/types"; // Importe o tipo
 
 // Componentes dos Passos
 import StepIdentity from "./_components/step-identity";
@@ -27,6 +29,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<AppError | undefined>(undefined); // Estado para o erro rico
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollArrow, setShowScrollArrow] = useState(false);
@@ -45,40 +48,52 @@ export default function OnboardingPage() {
     permissions: { recommendations: true, dataAnalysis: true }
   });
 
-  // useCallback corrige problemas de referência e tipagem ao passar para filhos
   const updateData = useCallback(<K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const nextStep = () => {
     if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    setSubmitError(undefined); // Limpa erros ao avançar
     setStep((prev) => prev + 1);
   };
 
   const prevStep = () => {
     if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    setSubmitError(undefined);
     setStep((prev) => prev - 1);
   };
 
   const finishOnboarding = async () => {
     setIsLoading(true);
+    setSubmitError(undefined);
+
     try {
         const result = await completeOnboarding(formData);
         
         if (result.success) {
             router.push("/account");
         } else {
-            alert("Erro ao salvar dados: " + result.error);
+            // Define o erro recebido da action para ser mostrado no componente
+            setSubmitError(result.error);
             setIsLoading(false);
+            // Rola para o topo para garantir que o usuário veja o erro
+            if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
     } catch (error) {
         console.error("Erro critico:", error);
-        alert("Erro de conexão. Tente novamente.");
+        setSubmitError({
+            code: 'SYS_NET',
+            message: 'Erro de conexão inesperado. Verifique sua internet.',
+            category: 'SYSTEM',
+            techDescription: String(error)
+        });
         setIsLoading(false);
+        if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  // Lógica de Scroll otimizada para evitar loops de renderização
+  // Lógica de Scroll otimizada
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
@@ -87,7 +102,6 @@ export default function OnboardingPage() {
     const isAtBottom = scrollHeight - scrollTop <= clientHeight + 10;
     const shouldShow = hasMoreContent && !isAtBottom;
 
-    // Só atualiza o estado se o valor mudar
     setShowScrollArrow(prev => (prev !== shouldShow ? shouldShow : prev));
   }, []);
 
@@ -95,7 +109,6 @@ export default function OnboardingPage() {
     const div = scrollRef.current;
     if (!div) return;
 
-    // Checagem inicial
     handleScroll();
 
     div.addEventListener('scroll', handleScroll);
@@ -105,7 +118,7 @@ export default function OnboardingPage() {
         div.removeEventListener('scroll', handleScroll);
         window.removeEventListener('resize', handleScroll);
     };
-  }, [step, handleScroll]); // Recria listeners quando o passo muda (conteúdo muda)
+  }, [step, handleScroll]);
 
   const currentInfo = useMemo(() => {
     switch (step) {
@@ -177,6 +190,11 @@ export default function OnboardingPage() {
                 <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8 hidden lg:block">
                     {currentInfo.title}
                 </h1>
+
+                {/* Área de Erro (Renderiza se houver erro no submit final) */}
+                <div className="mb-6">
+                   <FormError error={submitError} />
+                </div>
 
                 <div className="min-h-[400px]">
                     {step === 1 && <StepIdentity data={formData} update={updateData} onNext={nextStep} />}
