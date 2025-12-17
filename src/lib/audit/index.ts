@@ -10,15 +10,15 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  details?: Record<string, any>; // CORREÇÃO: Alterado de 'null' para 'any' para aceitar qualquer dado
-  userId?: string; // Opcional se já estiver logado
+  // CORREÇÃO: Alterado de 'null' para 'any' para aceitar objetos de detalhes reais
+  details?: Record<string, any>; 
+  userId?: string; 
 }
 
 export async function logActivity({ action, details, userId }: LogOptions) {
   try {
     const supabase = await createClient();
     
-    // Se não passar userId, tenta pegar da sessão
     let targetUserId = userId;
     if (!targetUserId) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -26,15 +26,13 @@ export async function logActivity({ action, details, userId }: LogOptions) {
     }
 
     if (!targetUserId) {
-        console.warn(`[Audit] Tentativa de log sem usuário: ${action}`);
+        // Log silencioso para não quebrar o fluxo se não houver user
         return;
     }
 
-    // Tenta pegar o IP (funciona no Vercel/Next.js)
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for") || "unknown";
 
-    // Grava no banco de forma "fire and forget" (não bloqueia o usuário se falhar)
     const { error } = await supabase.from('audit_logs').insert({
         user_id: targetUserId,
         action,
