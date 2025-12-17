@@ -4,48 +4,38 @@
 
 @layer base {
   :root {
-    /* --- Base - Fundo Branco Limpo --- */
+    /* --- CONFIGURAÇÃO PADRÃO (Light Mode) --- */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-
-    /* --- Cards e Superfícies --- */
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-
-    /* --- Brand Colors (Facillit Purple & Green) --- */
-    --primary: 262 83% 58%; /* Roxo Principal */
+    --primary: 262 83% 58%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 142 71% 45%; /* Verde Acento */
+    --secondary: 142 71% 45%;
     --secondary-foreground: 210 40% 98%;
-
-    /* --- Estados UI --- */
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
-    /* --- Bordas e Inputs --- */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 262 83% 58%; /* Foco na cor da marca */
+    --ring: 262 83% 58%;
+    --radius: 0.75rem;
 
-    --radius: 0.75rem; /* 12px */
-
-    /* --- Infraestrutura de Acessibilidade (Padrões) --- */
+    /* --- INFRAESTRUTURA DE ACESSIBILIDADE --- */
     --acc-font-scale: 1;
     --acc-letter-spacing: normal;
     --acc-line-height: 1.5;
     --acc-saturation: 100%;
+    --acc-font-family: var(--font-inter); /* Fonte padrão */
   }
 
+  /* --- TEMA ESCURO (Dark Mode é apenas um tema) --- */
   .dark {
-    /* Modo Escuro */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -67,35 +57,40 @@
     --ring: 263 70% 50%;
   }
 
-  /* --- 3. ALTO CONTRASTE (Visual) --- */
+  /* --- ALTO CONTRASTE (Sobrescreve tudo para máxima legibilidade) --- */
   .acc-contrast-high {
-    --background: 0 0% 0%;       /* Preto absoluto */
-    --foreground: 0 0% 100%;     /* Branco absoluto */
-    --primary: 60 100% 50%;      /* Amarelo puro (destaque) */
-    --primary-foreground: 0 0% 0%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 80%;
-    --border: 0 0% 100%;         /* Bordas brancas fortes */
-    --card: 0 0% 5%;
-    --ring: 60 100% 50%;
+    --background: 0 0% 0% !important;       /* Preto Absoluto */
+    --foreground: 0 0% 100% !important;     /* Branco Absoluto */
+    --card: 0 0% 5% !important;
+    --card-foreground: 0 0% 100% !important;
+    --popover: 0 0% 5% !important;
+    --popover-foreground: 0 0% 100% !important;
+    --primary: 60 100% 50% !important;      /* Amarelo Puro (Alta Visibilidade) */
+    --primary-foreground: 0 0% 0% !important;
+    --secondary: 0 0% 100% !important;      /* Branco */
+    --secondary-foreground: 0 0% 0% !important;
+    --muted: 0 0% 20% !important;
+    --muted-foreground: 0 0% 90% !important;
+    --accent: 60 100% 50% !important;
+    --accent-foreground: 0 0% 0% !important;
+    --border: 0 0% 100% !important;         /* Bordas Brancas Fortes */
+    --input: 0 0% 100% !important;
+    --ring: 60 100% 50% !important;
   }
 
-  /* --- 4. DALTONISMO / FOCO (Saturação Zero) --- */
-  .acc-sat-0 {
-    --acc-saturation: 0%;
-  }
-
-  /* --- 1. MODO DE LEITURA (Dislexia / Cognitivo) --- */
+  /* --- MODO LEITURA (Dislexia / Cognitivo) --- */
   .acc-mode-reading {
     --acc-letter-spacing: 0.05em;
     --acc-line-height: 1.8;
-    /* Fallback para fontes amigas da dislexia se disponíveis, ou sans-serif padrão mais espaçada */
-    --font-inter: "OpenDyslexic", "Comic Sans MS", "Verdana", sans-serif; 
+    --acc-font-family: "OpenDyslexic", "Verdana", "Arial", sans-serif;
   }
 
-  /* --- 2. ESCALA DE FONTE --- */
-  .acc-text-lg { --acc-font-scale: 1.1; }
-  .acc-text-xl { --acc-font-scale: 1.25; }
+  /* --- ESCALA DE FONTE --- */
+  .acc-text-lg { --acc-font-scale: 1.15; }
+  .acc-text-xl { --acc-font-scale: 1.3; }
+
+  /* --- SATURAÇÃO / DALTONISMO --- */
+  .acc-sat-0 { --acc-saturation: 0%; }
 }
 
 @layer base {
@@ -104,31 +99,19 @@
   }
   
   html {
-    /* Aplicação das variáveis de acessibilidade na raiz */
+    /* O HTML consome os tokens de infraestrutura para aplicar globalmente */
     font-size: calc(16px * var(--acc-font-scale));
     letter-spacing: var(--acc-letter-spacing);
     line-height: var(--acc-line-height);
+    font-family: var(--acc-font-family);
     filter: saturate(var(--acc-saturation));
-    transition: font-size 0.3s ease, filter 0.3s ease, letter-spacing 0.3s ease;
+    background-color: hsl(var(--background));
+    
+    /* Transições suaves para não assustar o usuário ao trocar temas */
+    transition: font-size 0.3s ease, filter 0.3s ease, background-color 0.3s ease, color 0.3s ease;
   }
 
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
-  
-  /* Melhoria de Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
-  }
-
-  /* --- 5. REDUÇÃO DE MOVIMENTO --- */
+  /* Se o usuário pediu redução de movimento, desligamos globalmente */
   .acc-motion-reduce *, 
   .acc-motion-reduce *::before, 
   .acc-motion-reduce *::after {
@@ -137,16 +120,9 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
 
-@layer utilities {
-  /* Utilitário restaurado: Gradiente da Marca */
-  .brand-gradient {
-    @apply bg-gradient-to-r from-brand-purple to-brand-green;
-  }
-  
-  /* Gradiente de Texto (opcional, útil para títulos) */
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-purple to-brand-green;
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-height: 100vh;
   }
 }
