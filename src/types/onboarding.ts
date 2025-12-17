@@ -12,6 +12,7 @@ export interface AddressData {
   siafi?: string;
 }
 
+// Estes valores devem bater com os do switch/case no actions.ts
 export type ProfileType = 
   | "education" 
   | "individuals" 
@@ -25,14 +26,14 @@ export interface OnboardingData {
   handle: string;
   profileImage: string | null;
   
-  // Novos Campos de Identidade
+  // Campos de Identidade
   pronouns: string;
   gender: string;
-  sexuality: string;
+  sexuality?: string; // Opcional
   
   address: AddressData | null;
   profileTypes: ProfileType[]; 
-  selectedModules: string[];
+  selectedModules: string[]; // IDs dos módulos
   aiLevel: AiLevel;
   deviceTrusted: boolean;
   permissions: {
@@ -41,11 +42,12 @@ export interface OnboardingData {
   };
 }
 
+// Interface para os componentes de Step
 export interface StepProps {
   data: OnboardingData;
   update: <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => void;
   onNext?: () => void;
   onBack?: () => void;
-  onFinish?: () => void;
+  onFinish?: (data?: Partial<OnboardingData>) => void; // Atualizado para aceitar dados parciais
   isLoading?: boolean;
 }

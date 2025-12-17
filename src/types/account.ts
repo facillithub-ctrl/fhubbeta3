@@ -61,3 +61,12 @@ export interface UserIntelligence {
   financial_profile: Record<string, unknown>;
   career_profile: Record<string, unknown>;
 }
+
+export interface AccountData {
+  id: string;
+  role: AccountRole;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  isVerified: boolean;
+}

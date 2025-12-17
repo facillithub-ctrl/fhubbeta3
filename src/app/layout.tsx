@@ -1,27 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google"; //
 import "./globals.css";
-import { cn } from "@/shared/utils/cn";
+import { Toaster } from "@/components/ui/toaster"; // ou seu caminho de toast
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Configuração da Fonte Inter
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-inter", // Define a variável CSS
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: {
-    template: '%s | Facillit Hub',
-    default: 'Facillit Hub - Ecossistema Digital Integrado',
-  },
-  description: "Plataforma integrada para Educação, Gestão Escolar e Soluções Corporativas.",
-  icons: {
-    icon: '/favicon.ico',
-  }
+  title: "Facillit Hub",
+  description: "Seu ecossistema educacional e corporativo.",
 };
 
 export default function RootLayout({
@@ -30,15 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="scroll-smooth">
-      <body
-        className={cn(
-          "min-h-screen bg-white font-sans antialiased text-gray-900",
-          geistSans.variable,
-          geistMono.variable
-        )}
-      >
+    <html lang="pt-BR" className={`${inter.variable}`}> 
+      <body className="font-sans antialiased bg-background text-foreground">
         {children}
+        <Toaster />
       </body>
     </html>
   );

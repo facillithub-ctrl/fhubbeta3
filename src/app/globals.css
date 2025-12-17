@@ -2,30 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Cores base para shadcn e sistema */
-  --background: #f3f4f6; /* brand-light */
-  --foreground: #0f0f11; /* brand-dark */
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0f0f11;
-    --foreground: #f3f4f6;
+    /* Base - Fundo Branco Limpo */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    /* Cards e Superfícies */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    /* Brand Colors (Facillit Purple & Green) */
+    --primary: 262 83% 58%; /* Roxo Principal */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 142 71% 45%; /* Verde Acento */
+    --secondary-foreground: 210 40% 98%;
+
+    /* Estados UI */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Bordas e Inputs */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%; /* Foco na cor da marca */
+
+    --radius: 0.75rem; /* 12px - Arredondamento moderno */
+  }
+
+  .dark {
+    /* Modo Escuro (Futuro) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263 70% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 142 70% 45%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263 70% 50%;
   }
 }
 
-body {
-  /* Aplica as variáveis nativamente */
-  background-color: var(--background);
-  color: var(--foreground);
-}
-@layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
-      display: none;
+@layer base {
+  * {
+    @apply border-border;
   }
-  .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11"; /* Inter Features */
+  }
+  
+  /* Melhoria de Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
   }
 }

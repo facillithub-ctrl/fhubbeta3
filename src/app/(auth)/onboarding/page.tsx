@@ -167,7 +167,7 @@ export default function OnboardingPage() {
              <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center text-white font-bold shadow-sm text-sm">F</div>
                 <div className="h-4 w-[1px] bg-gray-200"></div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Setup {step}/{steps.length}</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Etapa {step}/{steps.length}</span>
              </div>
              <div className="flex gap-1.5">
                 {steps.map(s => (
