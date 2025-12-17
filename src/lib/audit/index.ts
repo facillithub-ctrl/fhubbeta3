@@ -10,7 +10,8 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  details?: Record<string, any>; // CORRIGIDO: Aceita qualquer dado
+  // CORREÇÃO: 'unknown' é o tipo correto para dados JSON genéricos vindos de 'as Record<string, unknown>'
+  details?: Record<string, unknown>; 
   userId?: string; 
 }
 
