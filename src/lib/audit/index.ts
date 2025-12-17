@@ -10,7 +10,7 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  details?: Record<string, null>;
+  details?: Record<string, any>; // CORREÇÃO: Alterado de 'null' para 'any' para aceitar qualquer dado
   userId?: string; // Opcional se já estiver logado
 }
 
