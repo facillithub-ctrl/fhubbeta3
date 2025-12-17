@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* --- CONFIGURAÇÃO PADRÃO (Light Mode) --- */
+    /* --- CORES BASE --- */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -24,17 +24,15 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 262 83% 58%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* --- INFRAESTRUTURA DE ACESSIBILIDADE --- */
+    /* --- ACESSIBILIDADE: VARIÁVEIS --- */
     --acc-font-scale: 1;
-    --acc-letter-spacing: normal;
     --acc-line-height: 1.5;
-    --acc-saturation: 100%;
-    --acc-font-family: var(--font-inter); /* Fonte padrão */
+    --acc-letter-spacing: normal;
+    --acc-font-family: var(--font-inter);
   }
 
-  /* --- TEMA ESCURO (Dark Mode é apenas um tema) --- */
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -57,72 +55,82 @@
     --ring: 263 70% 50%;
   }
 
-  /* --- ALTO CONTRASTE (Sobrescreve tudo para máxima legibilidade) --- */
+  /* --- ALTO CONTRASTE --- */
   .acc-contrast-high {
-    --background: 0 0% 0% !important;       /* Preto Absoluto */
-    --foreground: 0 0% 100% !important;     /* Branco Absoluto */
+    --background: 0 0% 0% !important;
+    --foreground: 0 0% 100% !important;
     --card: 0 0% 5% !important;
     --card-foreground: 0 0% 100% !important;
     --popover: 0 0% 5% !important;
     --popover-foreground: 0 0% 100% !important;
-    --primary: 60 100% 50% !important;      /* Amarelo Puro (Alta Visibilidade) */
+    --primary: 60 100% 50% !important; /* Amarelo */
     --primary-foreground: 0 0% 0% !important;
-    --secondary: 0 0% 100% !important;      /* Branco */
+    --secondary: 0 0% 100% !important;
     --secondary-foreground: 0 0% 0% !important;
     --muted: 0 0% 20% !important;
-    --muted-foreground: 0 0% 90% !important;
+    --muted-foreground: 0 0% 100% !important;
     --accent: 60 100% 50% !important;
     --accent-foreground: 0 0% 0% !important;
-    --border: 0 0% 100% !important;         /* Bordas Brancas Fortes */
+    --border: 0 0% 100% !important;
     --input: 0 0% 100% !important;
     --ring: 60 100% 50% !important;
   }
 
-  /* --- MODO LEITURA (Dislexia / Cognitivo) --- */
-  .acc-mode-reading {
-    --acc-letter-spacing: 0.05em;
-    --acc-line-height: 1.8;
-    --acc-font-family: "OpenDyslexic", "Verdana", "Arial", sans-serif;
+  /* --- CLASSES UTILITÁRIAS DE ACESSIBILIDADE --- */
+  
+  /* Fonte Dislexia */
+  .acc-font-dyslexic {
+    --acc-font-family: "Comic Sans MS", "Verdana", sans-serif !important;
   }
 
-  /* --- ESCALA DE FONTE --- */
-  .acc-text-lg { --acc-font-scale: 1.15; }
-  .acc-text-xl { --acc-font-scale: 1.3; }
+  /* Cursor Gigante */
+  .acc-cursor-big, 
+  .acc-cursor-big * {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewport='0 0 32 32' style='fill:black;stroke:white;stroke-width:2px;'><path d='M0,0 L0,26 L6,20 L14,32 L18,28 L10,18 L20,18 L0,0 Z' /></svg>"), auto !important;
+  }
 
-  /* --- SATURAÇÃO / DALTONISMO --- */
-  .acc-sat-0 { --acc-saturation: 0%; }
+  /* Foco Forte */
+  .acc-focus-strong *:focus-visible {
+    outline: 3px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 6px hsla(var(--primary), 0.3) !important;
+  }
+
+  /* Esconder Imagens */
+  .acc-hide-images img,
+  .acc-hide-images video,
+  .acc-hide-images [style*="background-image"] {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  /* Guia de Leitura (Linha horizontal no cursor - Exige JS auxiliar no provider se quiser seguir o mouse, aqui deixo a base) */
+  .acc-reading-guide body::after {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: red;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0.5;
+    /* Nota: Para funcionar seguindo o mouse, precisa de JS. 
+       Para esta versão CSS-only, deixamos desabilitado ou fixo no centro */
+    display: none; 
+  }
+
+  html {
+    font-size: calc(16px * var(--acc-font-scale));
+    line-height: var(--acc-line-height);
+    letter-spacing: var(--acc-letter-spacing);
+    font-family: var(--acc-font-family);
+    transition: font-size 0.3s ease, filter 0.3s ease, background-color 0.3s ease;
+  }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
-  html {
-    /* O HTML consome os tokens de infraestrutura para aplicar globalmente */
-    font-size: calc(16px * var(--acc-font-scale));
-    letter-spacing: var(--acc-letter-spacing);
-    line-height: var(--acc-line-height);
-    font-family: var(--acc-font-family);
-    filter: saturate(var(--acc-saturation));
-    background-color: hsl(var(--background));
-    
-    /* Transições suaves para não assustar o usuário ao trocar temas */
-    transition: font-size 0.3s ease, filter 0.3s ease, background-color 0.3s ease, color 0.3s ease;
-  }
-
-  /* Se o usuário pediu redução de movimento, desligamos globalmente */
-  .acc-motion-reduce *, 
-  .acc-motion-reduce *::before, 
-  .acc-motion-reduce *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased;
-    min-height: 100vh;
-  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
 }

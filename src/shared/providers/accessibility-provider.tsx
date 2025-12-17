@@ -2,23 +2,54 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-// Definição do Estado Único de Acessibilidade
+// Tipos de Daltonismo
+type ColorBlindnessType = 
+  | "none"
+  | "protanomaly" | "deuteranomaly" | "tritanomaly"
+  | "protanopia" | "deuteranopia" | "tritanopia"
+  | "achromatopsia";
+
 type AccState = {
-  theme: "light" | "dark" | "system"; // Dark mode é apenas um tema
-  fontSize: "normal" | "lg" | "xl";
+  // Visual
+  theme: "light" | "dark" | "system";
   contrast: "normal" | "high";
-  saturation: "normal" | "zero"; 
-  readingMode: boolean;
-  reduceMotion: boolean; // Se true, força redução. Se false, respeita SO.
+  saturation: "normal" | "low" | "monochrome"; 
+  colorBlindness: ColorBlindnessType;
+  
+  // Tipografia
+  fontSize: "normal" | "lg" | "xl";
+  letterSpacing: "normal" | "wide" | "wider";
+  lineHeight: "normal" | "relaxed" | "loose";
+  fontDyslexic: boolean;
+
+  // Motor & Foco
+  cursorBig: boolean;
+  focusStrong: boolean;
+  hideImages: boolean;
+  reduceMotion: boolean;
+  
+  // Placeholders para o futuro (UI Only por enquanto)
+  readingGuide: boolean;
+  screenReader: boolean;
+  vlibras: boolean;
 };
 
 const defaultState: AccState = {
   theme: "system",
-  fontSize: "normal",
   contrast: "normal",
   saturation: "normal",
-  readingMode: false,
+  colorBlindness: "none",
+  fontSize: "normal",
+  letterSpacing: "normal",
+  lineHeight: "normal",
+  fontDyslexic: false,
+  cursorBig: false,
+  focusStrong: false,
+  hideImages: false,
   reduceMotion: false,
+  readingGuide: false,
+  screenReader: false,
+  vlibras: false,
 };
 
 type AccessibilityContextType = {
@@ -33,67 +64,68 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   const [state, setState] = useState<AccState>(defaultState);
   const [mounted, setMounted] = useState(false);
 
-  // 1. BOOT: Carregar LocalStorage + Preferências do SO
+  // 1. Carregar preferências no mount
   useEffect(() => {
-    const saved = localStorage.getItem("fhub-accessibility");
+    const saved = localStorage.getItem("fhub-acc-v4");
     if (saved) {
-      try {
-        setState({ ...defaultState, ...JSON.parse(saved) });
-      } catch (e) {
-        console.error("Erro ao carregar preferências", e);
-      }
-    } else {
-      // Se não tem salvo, detecta movimento reduzido do SO
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReducedMotion) setState((s) => ({ ...s, reduceMotion: true }));
+      try { setState({ ...defaultState, ...JSON.parse(saved) }); } 
+      catch (e) { console.error("Erro prefs", e); }
     }
     setMounted(true);
   }, []);
 
-  // 2. REAÇÃO: Aplicar classes no HTML quando o estado muda
+  // 2. Aplicar efeitos no DOM
   useEffect(() => {
     if (!mounted) return;
 
     const root = document.documentElement;
-    const classesToAdd: string[] = [];
-    
-    // Lista de todas as classes controladas por tokens para limpar antes de aplicar
-    const classesToRemove = [
-      "dark", 
-      "acc-text-lg", "acc-text-xl",
-      "acc-contrast-high",
-      "acc-sat-0",
-      "acc-mode-reading",
-      "acc-motion-reduce"
-    ];
+    const cl = root.classList;
 
-    // --- LÓGICA DE TEMA ---
-    if (state.theme === "dark") {
-      classesToAdd.push("dark");
-    } else if (state.theme === "system") {
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (systemDark) classesToAdd.push("dark");
+    // --- Tema & Contraste ---
+    cl.remove("dark", "acc-contrast-high");
+    if (state.contrast === 'high') {
+        cl.add("acc-contrast-high");
+    } else if (state.theme === "dark" || (state.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        cl.add("dark");
     }
 
-    // --- LÓGICA DE ACESSIBILIDADE ---
-    if (state.fontSize === "lg") classesToAdd.push("acc-text-lg");
-    if (state.fontSize === "xl") classesToAdd.push("acc-text-xl");
-    if (state.contrast === "high") classesToAdd.push("acc-contrast-high");
-    if (state.saturation === "zero") classesToAdd.push("acc-sat-0");
-    if (state.readingMode) classesToAdd.push("acc-mode-reading");
-    
-    // Movimento: Respeita escolha do usuário OU sistema
-    const systemReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (state.reduceMotion || systemReduceMotion) {
-      classesToAdd.push("acc-motion-reduce");
+    // --- Filtros de Cor (SVG + CSS Filters) ---
+    // Ordem de prioridade: Daltonismo > Monocromático > Saturação Baixa
+    if (state.colorBlindness !== "none") {
+        root.style.filter = `url(#acc-filter-${state.colorBlindness})`;
+    } else if (state.saturation === "monochrome") {
+        root.style.filter = "grayscale(100%)";
+    } else if (state.saturation === "low") {
+        root.style.filter = "saturate(50%)";
+    } else {
+        root.style.filter = "";
     }
 
-    // Aplicação Atômica (Remove velhas -> Adiciona novas)
-    root.classList.remove(...classesToRemove);
-    if (classesToAdd.length > 0) root.classList.add(...classesToAdd);
+    // --- Tipografia ---
+    const fontScale = state.fontSize === 'xl' ? '1.25' : state.fontSize === 'lg' ? '1.1' : '1';
+    const lSpacing = state.letterSpacing === 'wider' ? '0.1em' : state.letterSpacing === 'wide' ? '0.05em' : 'normal';
+    const lHeight = state.lineHeight === 'loose' ? '2' : state.lineHeight === 'relaxed' ? '1.8' : '1.5';
 
-    // Persistência Automática
-    localStorage.setItem("fhub-accessibility", JSON.stringify(state));
+    root.style.setProperty("--acc-font-scale", fontScale);
+    root.style.setProperty("--acc-letter-spacing", lSpacing);
+    root.style.setProperty("--acc-line-height", lHeight);
+
+    // --- Classes Utilitárias ---
+    cl.toggle("acc-font-dyslexic", state.fontDyslexic);
+    cl.toggle("acc-cursor-big", state.cursorBig);
+    cl.toggle("acc-focus-strong", state.focusStrong);
+    cl.toggle("acc-hide-images", state.hideImages);
+    
+    // --- Movimento ---
+    if (state.reduceMotion) {
+        root.style.setProperty("scroll-behavior", "auto");
+        cl.add("motion-reduce"); 
+    } else {
+        root.style.removeProperty("scroll-behavior");
+        cl.remove("motion-reduce");
+    }
+
+    localStorage.setItem("fhub-acc-v4", JSON.stringify(state));
 
   }, [state, mounted]);
 
@@ -105,8 +137,6 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 
   return (
     <AccessibilityContext.Provider value={{ state, updateState, reset }}>
-      {/* Evita flash de estilo renderizando o conteúdo apenas após a montagem inicial se crítico,
-          mas para acessibilidade geralmente permitimos render e o useEffect ajusta rápido. */}
       {children}
     </AccessibilityContext.Provider>
   );

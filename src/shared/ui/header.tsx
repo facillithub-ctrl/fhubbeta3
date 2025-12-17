@@ -2,26 +2,18 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/shared/utils/cn';
 import { 
-  // Navegação e UI
   ChevronDown, Menu, X, ArrowRight, ExternalLink,
-  // Ecossistema
-  PenTool, ClipboardCheck, PlayCircle, Gamepad2, BookOpen, Workflow, 
-  School, FlaskConical, LayoutDashboard, Cloud, Code2, 
-  Shield, Users, CreditCard, Heart, Calendar, MessageCircle, Briefcase,
-  // Recursos & Explorar
+  PenTool, PlayCircle, Gamepad2, School, LayoutDashboard, Code2, 
+  Shield, Users, Calendar, Briefcase,
   Scale, Accessibility, Share2, Newspaper, Sparkles, Layers, Trophy,
-  // Comunidade & Suporte
   Globe, MonitorPlay, LifeBuoy, Headset, Handshake,
-  // Conta
   LogIn, UserPlus, ShieldCheck, UserCog, LayoutTemplate
 } from 'lucide-react';
 
-// --- 1. Base de Dados (Rich Data) ---
-
+// Dados do Menu (Rich Data) - Mantidos iguais
 type MenuItem = { title: string; href: string; desc: string; icon: any; color: string; bg: string; };
 type MenuGroup = { title: string; items: MenuItem[]; };
 type MenuSection = { label: string; groups: MenuGroup[]; cta?: { text: string; href: string; } };
@@ -131,21 +123,19 @@ const menuData: Record<string, MenuSection> = {
   }
 };
 
-// --- 2. Componentes de UI Otimizados (Memoization opcional, mas mantidos simples por enquanto) ---
-
 const RichCard = ({ item }: { item: MenuItem }) => (
   <Link 
     href={item.href} 
-    className="flex items-start gap-3 p-3 rounded-2xl hover:bg-gray-50 transition-all group/item border border-transparent hover:border-gray-100 hover:shadow-sm"
+    className="flex items-start gap-3 p-3 rounded-2xl hover:bg-muted transition-all group/item border border-transparent hover:border-border hover:shadow-sm"
   >
     <div className={cn("p-2.5 rounded-xl shrink-0 transition-colors duration-300", item.bg)}>
       <item.icon className={cn("w-5 h-5", item.color)} />
     </div>
     <div>
-      <span className="block text-sm font-bold text-gray-800 group-hover/item:text-brand-purple transition-colors line-clamp-1">
+      <span className="block text-sm font-bold text-foreground group-hover/item:text-primary transition-colors line-clamp-1">
         {item.title}
       </span>
-      <span className="text-[11px] text-gray-500 font-medium leading-tight line-clamp-2 mt-0.5">
+      <span className="text-[11px] text-muted-foreground font-medium leading-tight line-clamp-2 mt-0.5">
         {item.desc}
       </span>
     </div>
@@ -157,7 +147,7 @@ const NavTrigger = ({ label, isActive, onEnter, onLeave }: any) => (
     <button 
       className={cn(
         "px-4 py-2 text-sm font-bold flex items-center gap-1.5 rounded-full transition-all",
-        isActive ? "text-brand-purple bg-white shadow-sm ring-1 ring-gray-100" : "text-gray-600 hover:text-brand-purple hover:bg-gray-50/80"
+        isActive ? "text-primary bg-background shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-primary hover:bg-muted/50"
       )}
     >
       {label} 
@@ -165,8 +155,6 @@ const NavTrigger = ({ label, isActive, onEnter, onLeave }: any) => (
     </button>
   </div>
 );
-
-// --- 3. Componente Header (Com lógica de Estado Corrigida) ---
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -178,7 +166,6 @@ export function Header() {
   const pathname = usePathname();
   const isHome = pathname === '/';
 
-  // --- OTIMIZAÇÃO 1: Scroll Handler com verificação de estado prévio ---
   const handleScroll = useCallback(() => {
     const shouldBeScrolled = window.scrollY > 20;
     setIsScrolled(prev => (prev !== shouldBeScrolled ? shouldBeScrolled : prev));
@@ -186,34 +173,29 @@ export function Header() {
 
   useEffect(() => {
     if (isHome) {
-        handleScroll(); // Check inicial
+        handleScroll();
         window.addEventListener('scroll', handleScroll);
     } else {
-        // Se não for a home, garante que está "scrolled" (fundo branco), mas evita loop
         setIsScrolled(prev => (prev ? prev : true));
     }
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isHome, handleScroll]);
 
-  // --- OTIMIZAÇÃO 2: Reset limpo ao mudar de rota ---
   useEffect(() => {
     setMobileMenuOpen(false);
     setActiveMenu(null);
     setActiveMobileSection(null);
   }, [pathname]);
 
-  // --- OTIMIZAÇÃO 3: Controle de Overflow do Body ---
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-    // Cleanup function para garantir que o scroll volte se o componente desmontar
     return () => { document.body.style.overflow = ''; };
   }, [mobileMenuOpen]);
 
-  // Handlers de Mouse para o Menu Desktop (com Debounce/Timeout)
   const handleMenuEnter = (menu: string) => {
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
     setActiveMenu(menu);
@@ -225,12 +207,10 @@ export function Header() {
     }, 150); 
   };
 
-  // Renderizador do Mega Menu
   const renderMegaMenu = (key: string) => {
     const data = menuData[key];
     if (!data) return null;
 
-    // Largura dinâmica
     const widthClass = data.groups.length === 3 ? "w-[900px]" : data.groups.length === 2 ? "w-[600px]" : "w-[340px]";
 
     return (
@@ -243,15 +223,15 @@ export function Header() {
         onMouseEnter={() => handleMenuEnter(key)}
         onMouseLeave={handleMenuLeave}
       >
-        <div className="absolute -top-6 left-0 w-full h-10 bg-transparent" /> {/* Ponte invisível */}
+        <div className="absolute -top-6 left-0 w-full h-10 bg-transparent" />
         
-        <div className="bg-white rounded-[28px] shadow-2xl shadow-brand-purple/10 border border-gray-100 p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-gradient" />
+        <div className="bg-popover rounded-[28px] shadow-2xl shadow-black/10 border border-border p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-secondary" />
           
           <div className={cn("grid gap-6", `grid-cols-${data.groups.length}`)}>
             {data.groups.map((group, idx) => (
-              <div key={idx} className={cn("space-y-3", idx < data.groups.length - 1 && "border-r border-gray-50 pr-6")}>
-                <h3 className="text-[11px] font-black uppercase tracking-widest text-gray-400 pl-1">{group.title}</h3>
+              <div key={idx} className={cn("space-y-3", idx < data.groups.length - 1 && "border-r border-border pr-6")}>
+                <h3 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground pl-1">{group.title}</h3>
                 <div className="grid gap-1">
                   {group.items.map((item) => <RichCard key={item.title} item={item} />)}
                 </div>
@@ -260,8 +240,8 @@ export function Header() {
           </div>
 
           {data.cta && (
-            <div className="mt-6 pt-4 border-t border-gray-50 flex justify-center">
-              <Link href={data.cta.href} className="group flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-purple transition-colors">
+            <div className="mt-6 pt-4 border-t border-border flex justify-center">
+              <Link href={data.cta.href} className="group flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
                 {data.cta.text}
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -274,7 +254,6 @@ export function Header() {
 
   return (
     <>
-      {/* Container Flutuante */}
       <div className={cn(
         "fixed left-0 right-0 z-50 flex justify-center transition-all duration-500 px-4",
         isScrolled ? "top-4" : "top-6"
@@ -283,33 +262,33 @@ export function Header() {
           className={cn(
             "w-full max-w-[1440px] flex items-center justify-between transition-all duration-500",
             isScrolled 
-              ? "bg-white/85 backdrop-blur-2xl border border-white/40 shadow-xl shadow-black/5 rounded-2xl py-2 pl-4 pr-3" 
+              ? "bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg rounded-2xl py-2 pl-4 pr-3 supports-[backdrop-filter]:bg-background/60" 
               : "bg-transparent py-2 px-0"
           )}
         >
-          {/* 1. LOGO (Isologo) */}
           <Link href="/" className="relative z-50 group shrink-0 ml-2">
-            <div className="relative w-9 h-9 transition-transform duration-300 group-hover:scale-110">
-              <Image src="/assets/images/LOGO/isologo/preto.png" alt="Facillit Hub" fill className="object-contain" priority />
+            <div className="flex items-center gap-2">
+                <div className="relative w-8 h-8 transition-transform duration-300 group-hover:scale-110">
+                    <div className="w-full h-full bg-primary rounded-lg flex items-center justify-center shadow-sm">
+                        <LayoutDashboard className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                </div>
+                <span className="font-bold text-lg tracking-tight hidden sm:block text-foreground">Facillit Hub</span>
             </div>
           </Link>
 
-          {/* 2. NAV DESKTOP CENTRAL (Glass Capsule) */}
-          <nav className="hidden lg:flex items-center gap-1 bg-white/60 backdrop-blur-md px-1.5 py-1.5 rounded-full border border-gray-100 shadow-sm relative">
-            
-            <Link href="/" className="px-5 py-2 text-sm font-bold text-gray-600 hover:text-brand-purple hover:bg-white rounded-full transition-all">
+          <nav className="hidden lg:flex items-center gap-1 bg-background/50 backdrop-blur-md px-1.5 py-1.5 rounded-full border border-border/50 shadow-sm relative">
+            <Link href="/" className="px-5 py-2 text-sm font-bold text-muted-foreground hover:text-primary hover:bg-background rounded-full transition-all">
               Início
             </Link>
-
             <NavTrigger label="Ecossistema" isActive={activeMenu === 'ecossistema'} onEnter={() => handleMenuEnter('ecossistema')} onLeave={handleMenuLeave} />
             <NavTrigger label="Explorar" isActive={activeMenu === 'explorar'} onEnter={() => handleMenuEnter('explorar')} onLeave={handleMenuLeave} />
             <NavTrigger label="Recursos" isActive={activeMenu === 'recursos'} onEnter={() => handleMenuEnter('recursos')} onLeave={handleMenuLeave} />
-            <Link href="/precos" className="px-5 py-2 text-sm font-bold text-gray-600 hover:text-brand-purple hover:bg-white rounded-full transition-all">
+            <Link href="/precos" className="px-5 py-2 text-sm font-bold text-muted-foreground hover:text-primary hover:bg-background rounded-full transition-all">
               Preços
             </Link>
             <NavTrigger label="Suporte" isActive={activeMenu === 'suporte'} onEnter={() => handleMenuEnter('suporte')} onLeave={handleMenuLeave} />
 
-            {/* Renderização dos Menus Flutuantes (Centralizados no Nav) */}
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0">
                {renderMegaMenu('ecossistema')}
                {renderMegaMenu('explorar')}
@@ -318,9 +297,7 @@ export function Header() {
             </div>
           </nav>
 
-          {/* 3. ÁREA DE CONTA (Direita) */}
           <div className="hidden lg:flex relative items-center gap-2" onMouseEnter={() => handleMenuEnter('conta')} onMouseLeave={handleMenuLeave}>
-             {/* Renderização do Menu Conta (Ancorado à direita) */}
              <div className="absolute top-full right-0 w-0 h-0">
                 <div 
                   className={cn(
@@ -329,18 +306,18 @@ export function Header() {
                   )}
                 >
                   <div className="absolute -top-6 right-0 w-full h-10 bg-transparent" />
-                  <div className="bg-white rounded-[24px] shadow-2xl shadow-brand-purple/10 border border-gray-100 p-6 relative overflow-hidden">
+                  <div className="bg-popover rounded-[24px] shadow-2xl shadow-black/10 border border-border p-6 relative overflow-hidden">
                     <div className="text-center mb-6">
-                        <div className="w-10 h-10 bg-brand-gradient rounded-full mx-auto flex items-center justify-center mb-2 shadow-lg ring-4 ring-purple-50">
-                            <ShieldCheck className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-primary/10 rounded-full mx-auto flex items-center justify-center mb-2 shadow-lg ring-4 ring-background">
+                            <ShieldCheck className="w-5 h-5 text-primary" />
                         </div>
-                        <h3 className="font-bold text-gray-900 text-sm">Acessar Facillit Hub</h3>
-                        <p className="text-[10px] text-gray-400 mt-0.5">Gerencie seu ecossistema</p>
+                        <h3 className="font-bold text-foreground text-sm">Acessar Facillit Hub</h3>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">Gerencie seu ecossistema</p>
                     </div>
                     <div className="space-y-4">
                        {menuData.conta.groups.map((group, idx) => (
                           <div key={idx}>
-                             <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 pl-1">{group.title}</h4>
+                             <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">{group.title}</h4>
                              <div className="grid gap-1">
                                 {group.items.map(item => <RichCard key={item.title} item={item} />)}
                              </div>
@@ -354,45 +331,43 @@ export function Header() {
              <button className={cn(
                "flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full font-bold text-sm transition-all border",
                activeMenu === 'conta' 
-                 ? "bg-gray-900 text-white border-gray-900 shadow-md ring-2 ring-brand-purple/20" 
-                 : "bg-white text-gray-700 border-gray-200 hover:border-brand-purple hover:text-brand-purple"
+                 ? "bg-foreground text-background border-foreground shadow-md ring-2 ring-primary/20" 
+                 : "bg-background text-muted-foreground border-border hover:border-primary hover:text-primary"
              )}>
                 <span>Minha Conta</span>
-                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center transition-colors", activeMenu === 'conta' ? "bg-white/20" : "bg-gray-100")}>
+                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center transition-colors", activeMenu === 'conta' ? "bg-background/20" : "bg-muted")}>
                     <UserCog className="w-4 h-4" />
                 </div>
              </button>
           </div>
 
-          {/* MOBILE TOGGLE */}
           <button 
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2.5 text-gray-800 bg-white rounded-full shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition-all"
+            className="lg:hidden p-2.5 text-foreground bg-background rounded-full shadow-sm border border-border hover:bg-muted active:scale-95 transition-all"
           >
             <Menu className="w-6 h-6" />
           </button>
         </header>
       </div>
 
-      {/* --- MENU MOBILE (Drawer Lateral Premium) --- */}
       <div 
         className={cn("fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-500 lg:hidden", mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none")}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       <div className={cn(
-        "fixed top-0 right-0 z-[70] w-[85%] max-w-[400px] h-full bg-white shadow-2xl transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) lg:hidden flex flex-col",
+        "fixed top-0 right-0 z-[70] w-[85%] max-w-[400px] h-full bg-background shadow-2xl transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) lg:hidden flex flex-col border-l border-border",
         mobileMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-dark tracking-tight">Menu</span>
-          <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-gray-50 rounded-full text-gray-500 hover:text-red-500 transition-colors">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <span className="text-xl font-bold text-foreground tracking-tight">Menu</span>
+          <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-muted rounded-full text-muted-foreground hover:text-destructive transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl font-bold text-gray-800">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl font-bold text-foreground">
             Início
           </Link>
 
@@ -400,28 +375,28 @@ export function Header() {
              const section = menuData[key];
              const isOpen = activeMobileSection === key;
              return (
-               <div key={key} className="border-b border-gray-100 last:border-0">
+               <div key={key} className="border-b border-border/50 last:border-0">
                  <button 
                    onClick={() => setActiveMobileSection(isOpen ? null : key)} 
-                   className={cn("flex items-center justify-between w-full py-5 px-2 rounded-xl transition-all", isOpen ? "bg-gray-50" : "")}
+                   className={cn("flex items-center justify-between w-full py-5 px-2 rounded-xl transition-all", isOpen ? "bg-muted/30" : "")}
                  >
-                   <span className={cn("font-bold text-lg", isOpen ? 'text-brand-purple' : 'text-gray-700')}>{section.label}</span>
-                   <ChevronDown className={cn("w-5 h-5 transition-transform", isOpen ? "rotate-180 text-brand-purple" : "text-gray-400")} />
+                   <span className={cn("font-bold text-lg", isOpen ? 'text-primary' : 'text-foreground')}>{section.label}</span>
+                   <ChevronDown className={cn("w-5 h-5 transition-transform", isOpen ? "rotate-180 text-primary" : "text-muted-foreground")} />
                  </button>
                  <div className={cn("grid transition-all duration-300", isOpen ? 'grid-rows-[1fr] opacity-100 pb-4' : 'grid-rows-[0fr] opacity-0')}>
                    <div className="overflow-hidden px-2 space-y-6 pt-2">
                      {section.groups.map((group, idx) => (
                        <div key={idx}>
-                         <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 pl-1">{group.title}</h4>
+                         <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 pl-1">{group.title}</h4>
                          <div className="grid gap-1">
                            {group.items.map(item => (
-                             <Link key={item.title} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100">
+                             <Link key={item.title} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg active:bg-muted">
                                <div className={cn("p-1.5 rounded-lg shrink-0", item.bg)}>
                                   <item.icon className={cn("w-4 h-4", item.color)} />
                                </div>
                                <div>
-                                 <span className="block text-sm font-bold text-gray-800">{item.title}</span>
-                                 <span className="text-[10px] text-gray-500 line-clamp-1">{item.desc}</span>
+                                 <span className="block text-sm font-bold text-foreground">{item.title}</span>
+                                 <span className="text-[10px] text-muted-foreground line-clamp-1">{item.desc}</span>
                                </div>
                              </Link>
                            ))}
@@ -434,13 +409,13 @@ export function Header() {
              );
           })}
           
-          <Link href="/precos" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between p-4 font-bold text-gray-700 rounded-xl hover:bg-gray-50">
-            Preços <ExternalLink className="w-4 h-4 text-gray-400" />
+          <Link href="/precos" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between p-4 font-bold text-foreground rounded-xl hover:bg-muted">
+            Preços <ExternalLink className="w-4 h-4 text-muted-foreground" />
           </Link>
         </div>
 
-        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-          <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full py-4 text-center font-bold text-white bg-brand-dark rounded-xl shadow-lg mb-3 active:scale-[0.98] transition-transform">
+        <div className="p-6 border-t border-border bg-muted/10">
+          <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full py-4 text-center font-bold text-primary-foreground bg-primary rounded-xl shadow-lg mb-3 active:scale-[0.98] transition-transform">
             Acessar Conta
           </Link>
         </div>
