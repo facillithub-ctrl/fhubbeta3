@@ -129,15 +129,15 @@ export async function completeOnboarding(data: OnboardingData): Promise<ActionRe
   }
 
   // 4. LOG DE AUDITORIA (Sucesso)
- await logActivity({
+  await logActivity({
       action: 'ONBOARDING_COMPLETE',
       userId: user.id,
       details: { 
-          handle: data.handle, 
+          handle: data.handle,
           role: accountRole,
           modules: data.selectedModules,
           ai_level: data.aiLevel
-      } as Record<string, unknown> // Casting seguro para evitar erro de 'any' implícito
+      }
   });
 
   revalidatePath('/account');
