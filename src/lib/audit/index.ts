@@ -10,8 +10,7 @@ type AuditAction =
 
 interface LogOptions {
   action: AuditAction;
-  // CRÍTICO: 'any' permite salvar o objeto { handle, role, modules } que vem do actions.ts
-  details?: Record<string, any>; 
+  details?: Record<string, any>; // CORRIGIDO: Aceita qualquer dado
   userId?: string; 
 }
 
@@ -20,13 +19,11 @@ export async function logActivity({ action, details, userId }: LogOptions) {
     const supabase = await createClient();
     
     let targetUserId = userId;
-    // Se não vier userId, tenta pegar da sessão
     if (!targetUserId) {
         const { data: { user } } = await supabase.auth.getUser();
         targetUserId = user?.id;
     }
 
-    // Se não tiver usuário (ex: erro de login), aborta o log para não quebrar o banco
     if (!targetUserId) {
         return;
     }
@@ -37,7 +34,7 @@ export async function logActivity({ action, details, userId }: LogOptions) {
     const { error } = await supabase.from('audit_logs').insert({
         user_id: targetUserId,
         action,
-        details, // Agora aceita o objeto graças ao tipo 'any'
+        details,
         ip_address: ip
     });
 
