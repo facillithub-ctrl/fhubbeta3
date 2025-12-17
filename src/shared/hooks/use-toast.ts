@@ -1,4 +1,4 @@
-import * as React from "react"
+=import * as React from "react"
 
 export type ToastActionElement = React.ReactNode
 
@@ -26,8 +26,8 @@ export function useToast() {
     return {
       id,
       dismiss: () => dismiss(id),
-      update: (props: ToastArgs) => {
-        setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...props } : t)))
+      update: (updatedProps: ToastArgs) => {
+        setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, ...updatedProps } : t)))
       },
     }
   }
