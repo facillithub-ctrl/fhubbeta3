@@ -1,8 +1,8 @@
-
 // src/domains/social/profile/services.ts
 import { createClient } from "@/lib/supabase/server";
 import { PublicProfileDTO } from "./types";
 import { cache } from "react";
+import { VerificationTier } from "@/shared/ui/verification-badge";
 
 export const getPublicProfileByUsername = cache(async (
   username: string, 
@@ -10,7 +10,6 @@ export const getPublicProfileByUsername = cache(async (
 ): Promise<PublicProfileDTO | null> => {
   const supabase = await createClient();
 
-  // [ATUALIZAÇÃO] Adicionado verification_tier no select
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('id, full_name, handle, avatar_url, bio, created_at, email, verification_tier')
@@ -46,10 +45,8 @@ export const getPublicProfileByUsername = cache(async (
     isFollowing = !!followCheck;
   }
 
-  const isPublicProfile = privacyData?.is_public ?? true;
-
-  // Lógica de verificação (ajuste conforme os valores do seu ENUM no banco)
-  const isVerified = profile.verification_tier && profile.verification_tier !== 'none';
+  // [MUDANÇA] Casting direto para o tipo (garanta que o banco use as mesmas strings: 'verified', 'professional', etc)
+  const tier = (profile.verification_tier || 'none') as VerificationTier;
 
   const dto: PublicProfileDTO = {
     id: profile.id,
@@ -65,10 +62,10 @@ export const getPublicProfileByUsername = cache(async (
     isOwnProfile: viewerId === profile.id,
     createdAt: profile.created_at,
     
-    // [NOVO] Mapeamento
-    isVerified,
+    // [MUDANÇA] Passando o tier exato
+    verificationTier: tier,
 
-    isPublic: isPublicProfile,
+    isPublic: privacyData?.is_public ?? true,
     privacy: privacyData ? {
         showEmail: privacyData.show_email,
         showLocation: privacyData.show_location,

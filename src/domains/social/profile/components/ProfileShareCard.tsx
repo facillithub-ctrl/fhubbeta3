@@ -1,11 +1,10 @@
-
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { RefObject } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { PublicProfileDTO } from '../types';
-import { Check } from 'lucide-react';
+import { VerificationTier } from '@/shared/ui/verification-badge';
 
 export interface ShareCardStats {
     followers: number;
@@ -19,24 +18,33 @@ interface ProfileShareCardProps {
     avatarOverride?: string | null;
     logoOverride?: string | null;
     isExporting?: boolean;
-    showAvatar?: boolean;
 }
 
-// Cores Oficiais
-const BRAND = {
-    purple: '#42047e',
-    green: '#07f49e',
-    dark: '#0f0f11',
-    white: '#ffffff',
-    grayLines: '#e4e4e7', // Cinza muito claro para linhas finas
+const BADGE_COLORS: Record<string, string> = {
+    verified: "#3b82f6",     
+    professional: "#10b981", 
+    creator: "#eab308",      
+    official: "#ef4444",     
 };
 
-// Componente do Badge de Verificado
-const VerifiedBadge = () => (
-    <div className="flex items-center justify-center w-8 h-8 ml-2 bg-[#07f49e] rounded-full shrink-0">
-        <Check className="w-5 h-5 text-white" strokeWidth={4} />
-    </div>
-);
+const BadgeIcon = ({ tier }: { tier: VerificationTier }) => {
+    if (!tier || tier === 'none') return null;
+    const color = BADGE_COLORS[tier] || BADGE_COLORS.verified;
+    
+    return (
+        <svg 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6 ml-1.5 mt-1.5 shrink-0" 
+            style={{ minWidth: '24px' }}
+        >
+            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.74Z" fill={color} fillOpacity="0.1" />
+            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.74Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="m9 12 2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+    );
+};
 
 export const ProfileShareCard = ({ 
     profile, 
@@ -45,139 +53,114 @@ export const ProfileShareCard = ({
     avatarOverride, 
     logoOverride, 
     isExporting = false,
-    showAvatar = true
 }: ProfileShareCardProps) => {
+    
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://facillithub.com';
     const profileUrl = `${baseUrl}/u/${profile.username}`;
-
     const safeAvatar = avatarOverride || (isExporting ? null : profile.avatarUrl);
     const safeLogo = logoOverride || (isExporting ? null : "/assets/images/accont.svg");
-
-    const memberSinceYear = profile.createdAt 
-        ? new Date(profile.createdAt).getFullYear() 
-        : new Date().getFullYear();
+    const memberSinceYear = profile.createdAt ? new Date(profile.createdAt).getFullYear() : new Date().getFullYear();
 
     return (
         <div
             ref={innerRef as any}
-            // Importante: bg-white forçado e sem sombras para exportação limpa
             className="w-[540px] h-[960px] flex flex-col items-center relative font-sans bg-white box-border"
-            style={{ 
-                // Garante que não haja transparência
-                backgroundColor: '#ffffff', 
-            }}
+            style={{ backgroundColor: '#ffffff' }}
         >
-            {/* Faixa Superior Minimalista */}
+            {/* Barra Gradient no topo */}
             <div className="w-full h-3 bg-gradient-to-r from-[#42047e] to-[#07f49e]"></div>
 
-            <div className="flex-1 flex flex-col items-center w-full px-12 pt-12 pb-12">
+            <div className="flex-1 flex flex-col items-center w-full px-12 pt-16 pb-12">
                 
-                {/* LOGO */}
-                <div className="mb-10 w-full flex justify-center items-center">
+                {/* [CORREÇÃO] Logo MUITO MAIOR (h-40 = 160px) */}
+                <div className="mb-10 mt-2 h-40 flex items-center justify-center">
                     {safeLogo ? (
-                        <div className="flex items-center gap-3">
-                            <img 
-                                src={safeLogo} 
-                                alt="Facillit" 
-                                className="h-14 w-auto object-contain"
-                                {...(!safeLogo.startsWith('data:') ? { crossOrigin: "anonymous" } : {})}
-                            />
-                            <span className="text-2xl font-bold tracking-tight text-gray-900">Facillit Hub</span>
-                        </div>
-                    ) : (
-                        <span className="text-4xl font-black tracking-tighter text-[#42047e]">
-                            FACILLIT
-                        </span>
-                    )}
+                        <img 
+                            src={safeLogo} 
+                            alt="Facillit" 
+                            className="h-full w-auto object-contain"
+                            {...(!safeLogo.startsWith('data:') ? { crossOrigin: "anonymous" } : {})}
+                        />
+                    ) : null}
                 </div>
 
-                {/* INFO PRINCIPAL */}
-                <div className="text-center w-full mb-8">
-                    <div className="flex items-center justify-center flex-wrap gap-1 mb-2 px-4">
-                        <h1 className="text-[3.5rem] font-[800] leading-none tracking-tight text-gray-900 text-center break-words max-w-full">
+                {/* AVATAR */}
+                <div className="relative mb-8">
+                    <div className="p-1.5 rounded-full border border-gray-100">
+                        <div className="w-52 h-52 rounded-full overflow-hidden bg-gray-50 relative border-4 border-white shadow-sm">
+                            {safeAvatar ? (
+                                <img
+                                    src={safeAvatar}
+                                    alt="Avatar"
+                                    className="w-full h-full object-cover"
+                                    {...(!safeAvatar.startsWith('data:') ? { crossOrigin: "anonymous" } : {})}
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-gray-300">
+                                    {profile.name.charAt(0)}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* NOME E VERIFICAÇÃO */}
+                <div className="text-center w-full mb-3">
+                    <div className="flex items-start justify-center w-full gap-0.5">
+                        <h1 className="text-[2.8rem] font-bold text-gray-900 leading-none tracking-tight break-words max-w-[85%]">
                             {profile.name}
                         </h1>
-                        {profile.isVerified && <VerifiedBadge />}
+                        <BadgeIcon tier={profile.verificationTier} />
                     </div>
                     
-                    <p className="text-2xl font-medium text-[#42047e]">
+                    <p className="text-xl font-medium text-gray-400 mt-2">
                         @{profile.username}
                     </p>
                 </div>
 
-                {/* AVATAR (Design Clean - Sem sombras pesadas) */}
-                {showAvatar && (
-                    <div className="relative mb-8">
-                         {/* Círculo decorativo fino */}
-                        <div className="p-1.5 rounded-full border border-dashed border-gray-300">
-                            <div className="w-56 h-56 rounded-full overflow-hidden border-[6px] border-white bg-gray-100 relative">
-                                {safeAvatar ? (
-                                    <img
-                                        src={safeAvatar}
-                                        alt="Avatar"
-                                        className="w-full h-full object-cover"
-                                        {...(!safeAvatar.startsWith('data:') ? { crossOrigin: "anonymous" } : {})}
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-bold text-4xl">
-                                        {profile.name.charAt(0)}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        
-                        {/* Tag Membro */}
-                        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white text-gray-900 px-6 py-2 rounded-full border border-gray-200 flex items-center gap-2 whitespace-nowrap">
-                            <span className="w-2 h-2 rounded-full bg-[#07f49e]"></span>
-                            <span className="text-xs font-bold tracking-widest uppercase">
-                                Desde {memberSinceYear}
-                            </span>
-                        </div>
-                    </div>
-                )}
-
                 {/* BIO */}
                 {profile.bio && (
-                    <div className="w-full text-center mb-auto px-4 mt-2">
-                        <p className="text-xl text-gray-500 leading-relaxed font-medium line-clamp-3">
-                            "{profile.bio}"
+                    <div className="w-full text-center px-6 mt-4 mb-auto">
+                        <p className="text-lg text-gray-500 font-medium leading-relaxed line-clamp-3 italic">
+                            {profile.bio}
                         </p>
                     </div>
                 )}
 
-                {/* ESTATÍSTICAS (Linhas finas) */}
-                <div className="flex w-full justify-center gap-16 py-8 border-t border-b border-gray-100 mb-8 mt-6">
+                {!profile.bio && <div className="mb-auto"></div>}
+
+                {/* ESTATÍSTICAS */}
+                <div className="flex w-full justify-center gap-14 py-8 border-t border-gray-100 mb-8 w-[85%]">
                     <div className="text-center">
-                        <span className="block text-[3rem] font-[800] text-gray-900 leading-none mb-2">
+                        <span className="block text-[2.5rem] font-bold text-gray-900 leading-none mb-1">
                             {stats.followers}
                         </span>
-                        <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Seguidores</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Seguidores</span>
                     </div>
                     <div className="w-px h-auto bg-gray-100"></div>
                     <div className="text-center">
-                        <span className="block text-[3rem] font-[800] text-gray-900 leading-none mb-2">
+                        <span className="block text-[2.5rem] font-bold text-gray-900 leading-none mb-1">
                             {stats.following}
                         </span>
-                        <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Seguindo</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Seguindo</span>
                     </div>
                 </div>
 
-                {/* FOOTER / QR CODE */}
-                <div className="w-full flex items-center justify-between gap-6">
-                     <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                {/* FOOTER */}
+                <div className="w-full bg-gray-50 p-5 rounded-2xl border border-gray-100 flex items-center justify-between">
+                    <div className="flex flex-col items-start gap-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                             Escaneie para acessar
                         </span>
-                        <span className="text-xl font-bold text-[#42047e] tracking-tight">
+                        <span className="text-xl font-bold text-gray-900 tracking-tight">
                             facillithub.com
                         </span>
-                     </div>
-                    
-                    <div className="bg-white p-2 border border-gray-200 rounded-xl">
+                    </div>
+                    <div className="bg-white p-1.5 rounded-xl shadow-sm border border-gray-100">
                         <QRCodeSVG 
                             value={profileUrl} 
-                            size={80}
-                            fgColor="#0f0f11" 
+                            size={56}
+                            fgColor="#111827" 
                             bgColor="#ffffff"
                             level={"M"}
                         />

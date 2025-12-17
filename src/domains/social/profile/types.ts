@@ -1,4 +1,5 @@
 // src/domains/social/profile/types.ts
+import { VerificationTier } from "@/shared/ui/verification-badge";
 
 export type PublicProfileDTO = {
   id: string;
@@ -15,8 +16,8 @@ export type PublicProfileDTO = {
   isFollowing: boolean;
   isOwnProfile: boolean;
   
-  // [NOVO] Campo para controlar o selo
-  isVerified: boolean;
+  // [MUDANÇA] Usando o tipo correto para saber a cor
+  verificationTier: VerificationTier;
   
   createdAt: string; 
   

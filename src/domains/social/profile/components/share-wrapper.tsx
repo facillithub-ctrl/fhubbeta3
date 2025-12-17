@@ -1,10 +1,9 @@
-// src/domains/social/profile/components/share-wrapper.tsx
 'use client'
 
 import { useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
-import { Share, Download, Loader2, X } from "lucide-react";
+import { Share, Download, Loader2, Send } from "lucide-react";
 
 import { ProfileShareCard } from "./ProfileShareCard"; 
 import { useProfileShare } from "./hooks/useProfileShare";
@@ -32,86 +31,95 @@ export function ProfileShareCardWrapper({ profile }: { profile: PublicProfileDTO
         followers: profile.followersCount,
         following: profile.followingCount
     };
-
+    
     return (
-        <Dialog onOpenChange={(open) => !open && clearPreview()}>
-            <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 hover:bg-gray-50 border-gray-200 text-gray-700">
-                    <Share className="w-4 h-4" />
-                    <span className="hidden sm:inline">Compartilhar</span>
-                </Button>
-            </DialogTrigger>
-            
-            <DialogContent className="max-w-[400px] md:max-w-[600px] bg-white border-none shadow-2xl p-0 overflow-hidden rounded-3xl flex flex-col max-h-[90vh]">
-                <DialogTitle className="sr-only">Compartilhar perfil</DialogTitle>
+        <>
+            <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+                <ProfileShareCard 
+                    innerRef={cardRef}
+                    profile={profile}
+                    stats={stats}
+                    avatarOverride={safeAvatarUrl}
+                    logoOverride={safeLogoUrl}
+                    isExporting={false}
+                />
+            </div>
+
+            <Dialog onOpenChange={(open) => !open && clearPreview()}>
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 rounded-full px-4 border-gray-200 hover:bg-gray-50 text-gray-600">
+                        <Share className="w-4 h-4" />
+                        <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider">Compartilhar</span>
+                    </Button>
+                </DialogTrigger>
                 
-                {/* Header do Dialog */}
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
-                    <h3 className="font-bold text-gray-900">Compartilhar Perfil</h3>
-                    {/* Botão de fechar nativo do DialogContent já existe, mas se quiser customizar pode por aqui */}
-                </div>
+                <DialogContent className="
+                    fixed bottom-0 left-0 right-0 top-auto 
+                    translate-y-0 translate-x-0 
+                    w-full max-w-md mx-auto 
+                    rounded-t-[2rem] rounded-b-none 
+                    border-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)] 
+                    bg-white p-6 gap-6
+                    data-[state=open]:animate-in data-[state=closed]:animate-out 
+                    data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300
+                    md:bottom-auto md:top-[50%] md:translate-y-[-50%] md:rounded-[2rem]
+                ">
+                    <DialogTitle className="text-center font-bold text-lg text-gray-900">
+                        Compartilhar Perfil
+                    </DialogTitle>
+                    
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-gray-200 md:hidden"></div>
 
-                <div className="flex-1 overflow-y-auto bg-gray-50 p-6 flex flex-col items-center justify-center min-h-[400px]">
-                    {/* Área de Preview */}
-                    <div className="relative shadow-sm rounded-2xl overflow-hidden border border-gray-200 bg-white transition-all duration-300">
-                        {previewUrl ? (
-                            // Mostra a imagem gerada (limpa)
-                            <img 
-                                src={previewUrl} 
-                                alt="Preview" 
-                                className="w-full max-w-[280px] h-auto object-contain block" 
-                            />
-                        ) : (
-                            // Mostra o componente React escalado para caber no modal
-                            <div className="w-[280px] h-[500px] relative overflow-hidden bg-white">
-                                <div className="absolute top-0 left-0 origin-top-left transform scale-[0.5185]">
-                                    {/* 540px * 0.5185 ~= 280px */}
-                                    <ProfileShareCard 
-                                        innerRef={cardRef}
-                                        profile={profile}
-                                        stats={stats}
-                                        avatarOverride={safeAvatarUrl}
-                                        logoOverride={safeLogoUrl}
-                                        isExporting={false}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Footer com Ações */}
-                <div className="p-6 bg-white border-t border-gray-100 flex flex-col gap-3 z-10">
-                    {!previewUrl ? (
-                        <Button 
-                            onClick={() => handleGenerate(cardRef.current)} 
-                            disabled={isGenerating}
-                            className="w-full h-12 text-base bg-brand-primary hover:bg-brand-dark transition-all rounded-xl font-bold"
-                        >
-                            {isGenerating ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2"/>
-                                    Gerando imagem...
-                                </>
-                            ) : "Gerar Card para Download"}
-                        </Button>
-                    ) : (
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={clearPreview} className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-600">
-                                Voltar
+                    <div className="flex flex-col gap-3 w-full pb-4">
+                        
+                        {!previewUrl ? (
+                            // [CORREÇÃO] bg-black text-white explícito
+                            <Button 
+                                onClick={() => handleGenerate(cardRef.current)} 
+                                disabled={isGenerating}
+                                className="w-full h-14 rounded-2xl bg-black hover:bg-gray-800 text-white font-bold text-base shadow-lg shadow-gray-200 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-none"
+                            >
+                                <span className="flex items-center gap-3">
+                                    {isGenerating ? <Loader2 className="w-5 h-5 animate-spin"/> : <Download className="w-5 h-5" />}
+                                    Salvar Imagem
+                                </span>
+                                <span className="text-xs font-normal opacity-60 bg-white/20 px-2 py-1 rounded-lg">PNG</span>
                             </Button>
-                            
-                            <a href={previewUrl} download={`facillit-${profile.username}.png`} className="flex-1">
-                                <Button className="w-full h-12 bg-brand-primary hover:bg-brand-dark rounded-xl font-bold gap-2">
-                                    <Download className="w-4 h-4" />
-                                    Baixar Imagem
+                        ) : (
+                            <a href={previewUrl} download={`facillit-${profile.username}.png`} className="w-full">
+                                {/* [CORREÇÃO] bg-black text-white explícito */}
+                                <Button className="w-full h-14 rounded-2xl bg-black hover:bg-gray-800 text-white font-bold text-base shadow-lg shadow-gray-200 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-none">
+                                    <span className="flex items-center gap-3">
+                                        <Download className="w-5 h-5" />
+                                        Baixar Imagem Pronta
+                                    </span>
+                                    <span className="text-xs font-normal opacity-80 bg-white/20 px-2 py-1 rounded-lg">Salvar</span>
                                 </Button>
                             </a>
-                        </div>
-                    )}
-                </div>
+                        )}
 
-            </DialogContent>
-        </Dialog>
+                        <Button 
+                            variant="outline"
+                            onClick={handleShare}
+                            className="w-full h-14 rounded-2xl border-2 border-gray-100 bg-white hover:bg-gray-50 text-gray-900 font-bold text-base flex items-center justify-between px-6"
+                        >
+                            <span className="flex items-center gap-3">
+                                <Send className="w-5 h-5" />
+                                Enviar Link
+                            </span>
+                        </Button>
+
+                         <Button 
+                            variant="ghost"
+                            onClick={clearPreview}
+                            className="w-full h-12 rounded-xl text-gray-500 font-medium hover:bg-transparent hover:text-gray-900"
+                        >
+                            Cancelar
+                        </Button>
+
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
