@@ -2,24 +2,24 @@
 
 export type PublicProfileDTO = {
   id: string;
-  username: string; // Mapeado de 'handle'
-  name: string;     // Mapeado de 'full_name'
-  avatarUrl: string | null; // Mapeado de 'avatar_url'
+  username: string;
+  name: string;
+  avatarUrl: string | null;
   bio: string | null;
   location: string | null; 
   website: string | null;
   
-  // Stats
   followersCount: number;
   followingCount: number;
   
-  // Estado do visualizador
   isFollowing: boolean;
   isOwnProfile: boolean;
   
+  // [NOVO] Campo para controlar o selo
+  isVerified: boolean;
+  
   createdAt: string; 
   
-  // [CORREÇÃO] Adicionando campos de privacidade que a página exige
   isPublic: boolean;
   privacy?: {
     showEmail: boolean;
@@ -27,6 +27,5 @@ export type PublicProfileDTO = {
     showEducation: boolean;
   };
   
-  // Dados sensíveis/condicionais
   email?: string | null;
 };

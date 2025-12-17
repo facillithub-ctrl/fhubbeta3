@@ -1,32 +1,30 @@
+
 // src/domains/social/profile/services.ts
 import { createClient } from "@/lib/supabase/server";
 import { PublicProfileDTO } from "./types";
 import { cache } from "react";
 
-// Cacheado para evitar duplicate requests na renderização
 export const getPublicProfileByUsername = cache(async (
   username: string, 
   viewerId?: string
 ): Promise<PublicProfileDTO | null> => {
   const supabase = await createClient();
 
-  // 1. Buscar o perfil pelo handle
+  // [ATUALIZAÇÃO] Adicionado verification_tier no select
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, full_name, handle, avatar_url, bio, created_at, email')
+    .select('id, full_name, handle, avatar_url, bio, created_at, email, verification_tier')
     .eq('handle', username)
     .single();
 
   if (error || !profile) return null;
 
-  // [CORREÇÃO] 1.5 Buscar configurações de privacidade
   const { data: privacyData } = await supabase
     .from('profile_privacy')
     .select('*')
     .eq('profile_id', profile.id)
     .maybeSingle();
 
-  // 2. Contar seguidores/seguindo
   const { count: followersCount } = await supabase
     .from('social_follows') 
     .select('*', { count: 'exact', head: true })
@@ -37,7 +35,6 @@ export const getPublicProfileByUsername = cache(async (
     .select('*', { count: 'exact', head: true })
     .eq('follower_id', profile.id);
 
-  // 3. Verificar se o visualizador segue este perfil
   let isFollowing = false;
   if (viewerId) {
     const { data: followCheck } = await supabase
@@ -49,17 +46,18 @@ export const getPublicProfileByUsername = cache(async (
     isFollowing = !!followCheck;
   }
 
-  // Define padrão como público se não houver registro de privacidade
   const isPublicProfile = privacyData?.is_public ?? true;
 
-  // 4. Mapear para DTO (Snake Case -> Camel Case)
+  // Lógica de verificação (ajuste conforme os valores do seu ENUM no banco)
+  const isVerified = profile.verification_tier && profile.verification_tier !== 'none';
+
   const dto: PublicProfileDTO = {
     id: profile.id,
     username: profile.handle || username,
     name: profile.full_name || "Usuário",
     avatarUrl: profile.avatar_url,
     bio: profile.bio,
-    location: null, // Pode integrar com tabela de endereços futuramente
+    location: null,
     website: null,
     followersCount: followersCount || 0,
     followingCount: followingCount || 0,
@@ -67,7 +65,9 @@ export const getPublicProfileByUsername = cache(async (
     isOwnProfile: viewerId === profile.id,
     createdAt: profile.created_at,
     
-    // [CORREÇÃO] Preenchendo os novos campos
+    // [NOVO] Mapeamento
+    isVerified,
+
     isPublic: isPublicProfile,
     privacy: privacyData ? {
         showEmail: privacyData.show_email,
