@@ -16,7 +16,6 @@ export async function loginAction(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  // Persistir email em caso de erro (senha não)
   const formValues = { email };
 
   if (!email || !password) {
@@ -30,11 +29,10 @@ export async function loginAction(
 
   if (error) {
     console.error("[Login] Auth Error:", error.message);
-    // Mesmo que o erro seja outro, retornamos credenciais inválidas por segurança,
-    // a menos que seja algo de sistema crítico
     return { success: false, error: AUTH_ERRORS.INVALID_CREDENTIALS, inputs: formValues };
   }
 
   revalidatePath("/", "layout");
-  redirect("/account");
+  // MUDANÇA AQUI: Redireciona para a seleção de Hubs
+  redirect("/select-hub");
 }

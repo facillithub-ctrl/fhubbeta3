@@ -14,7 +14,8 @@ export default async function AccountPage() {
       />
     );
   } catch (error) {
-    console.error("Erro ao carregar conta:", error);
+    // REMOVIDO: console.error desnecessário que causava erro de Source Map no Turbopack.
+    // Se falhar (ex: token expirado), apenas redireciona para login.
     redirect("/login");
   }
 }

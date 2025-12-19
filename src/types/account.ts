@@ -37,6 +37,7 @@ export interface UserProfile {
   gender: string | null;
   pronouns: string | null;
   
+  
   verification_tier: VerificationTier; 
 
   address: AddressData | null;

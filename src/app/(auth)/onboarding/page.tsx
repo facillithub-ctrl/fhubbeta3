@@ -102,21 +102,19 @@ export default function OnboardingPage() {
     setShowScrollArrow(prev => (prev !== shouldShow ? shouldShow : prev));
   }, []);
 
-  useEffect(() => {
-    const div = scrollRef.current;
-    if (!div) return;
+useEffect(() => {
+  const div = scrollRef.current;
+  if (!div) return;
 
-    handleScroll();
+  div.addEventListener('scroll', handleScroll);
 
-    div.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll);
-    
-    return () => {
-        div.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleScroll);
-    };
-  }, [step, handleScroll]);
+  return () => {
+    div.removeEventListener('scroll', handleScroll);
+  };
+  }, 
+  []);
 
+  
   const currentInfo = useMemo(() => {
     switch (step) {
       case 1:

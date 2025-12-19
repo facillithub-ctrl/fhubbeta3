@@ -3,33 +3,35 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
-  LayoutDashboard, 
-  User, 
-  Settings, 
-  LogOut, 
-  GraduationCap, 
-  Building2, 
-  Rocket 
+  LayoutDashboard, User, Settings, LogOut, 
+  GraduationCap, Building2, Rocket, Briefcase, Lock 
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
-// CORREÇÃO: Importar da nova estrutura
 import { createClient } from "@/lib/supabase/client";
 
-const menuItems = [
-  { label: "Visão Geral", icon: LayoutDashboard, href: "/account" },
-  { label: "Education", icon: GraduationCap, href: "/education" },
-  { label: "Enterprise", icon: Building2, href: "/enterprise" },
-  { label: "Startups", icon: Rocket, href: "/startups" },
+// Interface para definir status do item
+interface MenuItem {
+    label: string;
+    icon: any;
+    href: string;
+    status?: 'active' | 'beta' | 'soon'; // Novo campo
+}
+
+const menuItems: MenuItem[] = [
+  { label: "Visão Geral", icon: LayoutDashboard, href: "/select-hub", status: 'active' }, 
+  { label: "Education", icon: GraduationCap, href: "/dashboard/education", status: 'active' },
+  { label: "Schools", icon: Building2, href: "/dashboard/schools", status: 'active' },
+  { label: "Startups", icon: Rocket, href: "/dashboard/startups", status: 'beta' },
+  { label: "Enterprise", icon: Briefcase, href: "/dashboard/enterprise", status: 'soon' }, // Exemplo "Em breve"
 ];
 
-const secondaryItems = [
-  { label: "Configurações", icon: Settings, href: "/settings" },
+const secondaryItems: MenuItem[] = [
+  { label: "Configurações", icon: Settings, href: "/account", status: 'active' },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  // CORREÇÃO: Instanciar o cliente
   const supabase = createClient();
 
   const handleLogout = async () => {
@@ -38,97 +40,86 @@ export function Sidebar() {
     router.refresh();
   };
 
+  const renderMenuItem = (item: MenuItem) => {
+    const isActive = pathname === item.href;
+    const isLocked = item.status === 'soon';
+    
+    const Wrapper = isLocked ? 'div' : Link;
+
+    return (
+        <Wrapper
+            key={item.href}
+            href={isLocked ? '#' : item.href}
+            className={cn(
+                "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group select-none",
+                isActive
+                    ? "bg-primary/10 text-primary"
+                    : isLocked 
+                        ? "text-muted-foreground/50 cursor-not-allowed"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+            )}
+        >
+            <div className="flex items-center gap-3">
+                <item.icon
+                    className={cn(
+                        "w-4 h-4",
+                        isActive ? "text-primary" : isLocked ? "text-muted-foreground/40" : "text-muted-foreground"
+                    )}
+                />
+                {item.label}
+            </div>
+            
+            {/* Badges de Status */}
+            {item.status === 'beta' && (
+                <span className="text-[9px] font-bold bg-purple-500/10 text-purple-600 px-1.5 py-0.5 rounded border border-purple-500/20">BETA</span>
+            )}
+            {item.status === 'soon' && (
+                <Lock className="w-3 h-3 text-muted-foreground/40" />
+            )}
+        </Wrapper>
+    );
+  }
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 flex-col hidden md:flex h-full">
+    <aside className="w-64 bg-card border-r border-border flex-col hidden md:flex h-full transition-colors duration-300">
       {/* Logo Area */}
-      <div className="p-6 border-b border-gray-50 flex items-center gap-3">
-        <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-          F
-        </div>
-        <span className="font-extrabold text-lg tracking-tight text-gray-900">
-          Facillit Hub
-        </span>
+      <div className="p-6 border-b border-border flex items-center gap-3">
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shadow-sm">F</div>
+        <span className="font-extrabold text-lg tracking-tight text-foreground">Facillit Hub</span>
       </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6">
-        
-        {/* Main Menu */}
         <div>
-          <p className="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-            Menu
-          </p>
+          <p className="px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Menu</p>
           <nav className="space-y-1">
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
-                    isActive
-                      ? "bg-brand-purple/5 text-brand-purple"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <item.icon
-                    className={cn(
-                      "w-4 h-4",
-                      isActive ? "text-brand-purple" : "text-gray-400"
-                    )}
-                  />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {menuItems.map(renderMenuItem)}
           </nav>
         </div>
 
-        {/* Secondary Menu */}
         <div>
-          <p className="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-            Sistema
-          </p>
+          <p className="px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Sistema</p>
           <nav className="space-y-1">
-            {secondaryItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
-                  pathname === item.href
-                    ? "bg-brand-purple/5 text-brand-purple"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <item.icon className="w-4 h-4 text-gray-400" />
-                {item.label}
-              </Link>
-            ))}
-            
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all text-left"
-            >
+            {secondaryItems.map(renderMenuItem)}
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all text-left">
               <LogOut className="w-4 h-4" />
               Sair
             </button>
           </nav>
         </div>
       </div>
-
-      {/* User Footer (Mini Profile) */}
-      <div className="p-4 border-t border-gray-50">
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-gray-50 border border-gray-100">
-          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-200 text-gray-400">
-            <User className="w-4 h-4" />
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-xs font-bold text-gray-900 truncate">Minha Conta</p>
-            <p className="text-[10px] text-gray-500 truncate">Online</p>
-          </div>
-        </div>
+      
+      {/* Mini Profile (Linkado ao Account) */}
+      <div className="p-4 border-t border-border">
+         <Link href="/account" className="flex items-center gap-3 p-2 rounded-xl bg-muted/30 border border-border hover:bg-muted hover:border-primary/30 transition-all cursor-pointer group">
+             <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border border-border text-muted-foreground group-hover:text-primary transition-colors">
+                <User className="w-4 h-4" />
+             </div>
+             <div className="flex-1 overflow-hidden">
+                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">Minha Conta</p>
+                <p className="text-[10px] text-muted-foreground truncate">Gerenciar ID</p>
+             </div>
+         </Link>
       </div>
     </aside>
   );

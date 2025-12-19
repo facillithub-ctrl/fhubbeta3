@@ -1,90 +1,150 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/shared/ui/button"
-import { Switch } from "@/shared/ui/switch" // Certifique-se de ter este componente
-import { Label } from "@/shared/ui/label"   // Certifique-se de ter este componente
-import { Loader2 } from "lucide-react"
-import { updatePrivacySettings } from "../actions" // Você precisará criar essa action
+import { useState } from "react";
+import { ProfilePrivacySettings } from "@/types/account";
+import { updatePrivacySettings } from "../actions";
+import { Switch } from "@/shared/ui/switch";
+import { Button } from "@/shared/ui/button";
+import { Eye, UserCheck, Globe, Save } from "lucide-react";
+// CORREÇÃO 1: Importar o Hook useToast em vez da função toast direta
+import { useToast } from "@/shared/hooks/use-toast";
+import { cn } from "@/shared/utils/cn";
 
-export function PrivacyTab({ privacySettings }: { privacySettings: any }) {
-  const [isLoading, setIsLoading] = useState(false)
+interface PrivacyTabProps {
+  settings: ProfilePrivacySettings;
+}
+
+export default function PrivacyTab({ settings }: PrivacyTabProps) {
+  const [formData, setFormData] = useState<ProfilePrivacySettings>(settings);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Estado local simplificado para o exemplo
-  const [settings, setSettings] = useState(privacySettings || {
-    isPublic: true,
-    showEmail: false,
-    showLocation: true,
-    showEducation: true
-  })
+  // CORREÇÃO 2: Destruturar a função toast do hook
+  const { toast } = useToast();
 
-  const handleToggle = (key: string) => {
-    setSettings((prev: any) => ({ ...prev, [key]: !prev[key] }))
-  }
+  const handleToggle = (key: keyof ProfilePrivacySettings) => {
+    setFormData(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
-  const onSave = async () => {
-    setIsLoading(true)
-    try {
-      await updatePrivacySettings(settings)
-      // Adicionar Toast de sucesso aqui
-    } catch (error) {
-      // Adicionar Toast de erro
-    } finally {
-      setIsLoading(false)
+  const handleSave = async () => {
+    setIsLoading(true);
+    const res = await updatePrivacySettings(formData);
+    setIsLoading(false);
+
+    if (res.success) {
+      toast({ 
+        title: "Privacidade atualizada", 
+        description: "Suas preferências foram salvas com segurança." 
+        // Nota: Se 'success' não existir no seu tema, remova ou use 'default'
+      });
+    } else {
+      toast({ 
+        title: "Erro", 
+        description: res.error, 
+        variant: "destructive" 
+      });
     }
-  }
+  };
 
   return (
-    <div className="space-y-8 max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h2 className="text-xl font-medium tracking-tight mb-1">Privacidade do Perfil</h2>
-        <p className="text-sm text-gray-500">Controle quem pode ver suas informações e interagir com você.</p>
-      </div>
-
-      <div className="space-y-6 border border-gray-100 rounded-xl p-6 bg-gray-50/50">
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="text-base">Perfil Público</Label>
-            <p className="text-sm text-gray-500">Permitir que pessoas encontrem seu perfil via link direto.</p>
-          </div>
-          <Switch checked={settings.isPublic} onCheckedChange={() => handleToggle('isPublic')} />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Central de Privacidade</h2>
+          <p className="text-sm text-muted-foreground">Controle quem vê suas informações e como você aparece no ecossistema.</p>
         </div>
-
-        <div className="w-full h-px bg-gray-200" />
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Exibir Email</Label>
-            <p className="text-sm text-gray-500">Mostrar seu email de contato publicamente.</p>
-          </div>
-          <Switch checked={settings.showEmail} onCheckedChange={() => handleToggle('showEmail')} />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Exibir Localização</Label>
-            <p className="text-sm text-gray-500">Mostrar sua cidade/país no card de perfil.</p>
-          </div>
-          <Switch checked={settings.showLocation} onCheckedChange={() => handleToggle('showLocation')} />
-        </div>
-        
-        <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-                <Label>Exibir Educação</Label>
-                <p className="text-sm text-gray-500">Mostrar seus certificados e resultados educacionais.</p>
-            </div>
-            <Switch checked={settings.showEducation} onCheckedChange={() => handleToggle('showEducation')} />
-        </div>
-
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={onSave} disabled={isLoading} className="bg-brand-primary min-w-[120px]">
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Salvar Alterações
+        <Button onClick={handleSave} disabled={isLoading} className="gap-2">
+            {isLoading ? "Salvando..." : <><Save className="w-4 h-4" /> Salvar Alterações</>}
         </Button>
       </div>
+
+      <div className="grid gap-6">
+        
+        {/* Bloco 1: Visibilidade Pública */}
+        <section className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="p-4 border-b border-border bg-muted/20 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-primary" />
+                <h3 className="font-bold text-sm text-foreground">Visibilidade Pública</h3>
+            </div>
+            <div className="p-4 space-y-4">
+                <ToggleRow 
+                    label="Perfil Público" 
+                    desc="Permitir que pessoas fora da sua organização vejam seu perfil básico."
+                    checked={formData.isPublic}
+                    onChange={() => handleToggle('isPublic')}
+                />
+                <ToggleRow 
+                    label="Indexação em Buscadores" 
+                    desc="Permitir que Google e Bing mostrem seu perfil nos resultados (SEO)."
+                    checked={true} // Mock: precisa adicionar ao DB
+                    onChange={() => {}} 
+                    disabled={!formData.isPublic}
+                />
+            </div>
+        </section>
+
+        {/* Bloco 2: Dados Sensíveis */}
+        <section className="bg-card border border-border rounded-xl overflow-hidden">
+             <div className="p-4 border-b border-border bg-muted/20 flex items-center gap-2">
+                <Eye className="w-4 h-4 text-primary" />
+                <h3 className="font-bold text-sm text-foreground">Dados Visíveis</h3>
+            </div>
+            <div className="p-4 space-y-4">
+                <ToggleRow 
+                    label="Exibir E-mail" 
+                    desc="Mostrar seu e-mail de contato no perfil público."
+                    checked={formData.showEmail}
+                    onChange={() => handleToggle('showEmail')}
+                />
+                <ToggleRow 
+                    label="Exibir Localização" 
+                    desc="Mostrar cidade/estado (baseado no IP ou cadastro)."
+                    checked={formData.showLocation}
+                    onChange={() => handleToggle('showLocation')}
+                />
+                <ToggleRow 
+                    label="Exibir Formação Acadêmica" 
+                    desc="Listar suas escolas e cursos concluídos."
+                    checked={formData.showEducation}
+                    onChange={() => handleToggle('showEducation')}
+                />
+            </div>
+        </section>
+
+        {/* Bloco 3: Interações */}
+        <section className="bg-card border border-border rounded-xl overflow-hidden">
+             <div className="p-4 border-b border-border bg-muted/20 flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-primary" />
+                <h3 className="font-bold text-sm text-foreground">Interações</h3>
+            </div>
+            <div className="p-4 space-y-4">
+                <ToggleRow 
+                    label="Permitir Mensagens" 
+                    desc="Outros usuários podem enviar mensagens diretas para você."
+                    checked={formData.allowMessages}
+                    onChange={() => handleToggle('allowMessages')}
+                />
+                <ToggleRow 
+                    label="Solicitações de Conexão" 
+                    desc="Permitir que enviem pedidos de amizade/conexão."
+                    checked={true} // Mock
+                    onChange={() => {}}
+                />
+            </div>
+        </section>
+      </div>
     </div>
-  )
+  );
+}
+
+// Componente Auxiliar
+function ToggleRow({ label, desc, checked, onChange, disabled }: { label: string, desc: string, checked: boolean, onChange: () => void, disabled?: boolean }) {
+    return (
+        <div className={cn("flex items-center justify-between", disabled && "opacity-50 pointer-events-none")}>
+            <div className="space-y-0.5">
+                <label className="text-sm font-medium text-foreground">{label}</label>
+                <p className="text-xs text-muted-foreground max-w-[90%]">{desc}</p>
+            </div>
+            <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
+        </div>
+    )
 }
