@@ -7,8 +7,8 @@ import { cn } from "@/shared/utils/cn";
 import { OnboardingData } from "@/types/onboarding";
 import { SecureEnvironmentCard } from "@/shared/ui/secure-card";
 import { completeOnboarding } from "./actions";
-import { FormError } from "@/shared/ui/form-error"; // Importe o componente
-import { AppError } from "@/lib/errors/types"; // Importe o tipo
+import { FormError } from "@/shared/ui/form-error";
+import { AppError } from "@/lib/errors/types";
 
 // Componentes dos Passos
 import StepIdentity from "./_components/step-identity";
@@ -29,7 +29,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [submitError, setSubmitError] = useState<AppError | undefined>(undefined); // Estado para o erro rico
+  const [submitError, setSubmitError] = useState<AppError | undefined>(undefined);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollArrow, setShowScrollArrow] = useState(false);
@@ -54,7 +54,7 @@ export default function OnboardingPage() {
 
   const nextStep = () => {
     if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    setSubmitError(undefined); // Limpa erros ao avançar
+    setSubmitError(undefined);
     setStep((prev) => prev + 1);
   };
 
@@ -74,10 +74,8 @@ export default function OnboardingPage() {
         if (result.success) {
             router.push("/account");
         } else {
-            // Define o erro recebido da action para ser mostrado no componente
             setSubmitError(result.error);
             setIsLoading(false);
-            // Rola para o topo para garantir que o usuário veja o erro
             if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
     } catch (error) {
@@ -93,7 +91,6 @@ export default function OnboardingPage() {
     }
   };
 
-  // Lógica de Scroll otimizada
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
@@ -157,21 +154,21 @@ export default function OnboardingPage() {
   }, [step]);
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-sans text-gray-900 overflow-hidden">
+    <div className="min-h-screen w-full bg-background flex flex-col lg:flex-row font-sans text-foreground overflow-hidden transition-colors duration-300">
       
       {/* --- ESQUERDA: FORMULÁRIO (60%) --- */}
-      <div className="w-full lg:w-[60%] flex flex-col relative z-10 h-[100dvh] lg:h-screen border-r border-gray-100 bg-white">
+      <div className="w-full lg:w-[60%] flex flex-col relative z-10 h-[100dvh] lg:h-screen border-r border-border bg-background">
         
         {/* Header */}
-        <div className="px-6 sm:px-10 py-5 border-b border-gray-100 flex items-center justify-between bg-white z-30 shrink-0">
+        <div className="px-6 sm:px-10 py-5 border-b border-border flex items-center justify-between bg-background z-30 shrink-0">
              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center text-white font-bold shadow-sm text-sm">F</div>
-                <div className="h-4 w-[1px] bg-gray-200"></div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Etapa {step}/{steps.length}</span>
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shadow-sm text-sm">F</div>
+                <div className="h-4 w-[1px] bg-border"></div>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Etapa {step}/{steps.length}</span>
              </div>
              <div className="flex gap-1.5">
                 {steps.map(s => (
-                    <div key={s.id} className={cn("h-1 rounded-full transition-all duration-500", s.id <= step ? "w-6 bg-brand-green" : "w-2 bg-gray-100")} />
+                    <div key={s.id} className={cn("h-1 rounded-full transition-all duration-500", s.id <= step ? "w-6 bg-primary" : "w-2 bg-muted")} />
                 ))}
              </div>
         </div>
@@ -179,19 +176,19 @@ export default function OnboardingPage() {
         {/* Scroll Area */}
         <div 
             ref={scrollRef}
-            className="flex-1 overflow-y-auto scrollbar-hide relative pb-10"
+            className="flex-1 overflow-y-auto scrollbar-hide relative pb-10 bg-background"
         >
             <div className="max-w-[580px] mx-auto p-6 sm:p-12 py-8 animate-in slide-in-from-bottom-4 duration-500">
-                <div className="lg:hidden mb-8 p-4 bg-gray-50/50 rounded-xl border border-gray-100">
-                    <h2 className="font-bold text-sm text-gray-900">{currentInfo.title}</h2>
-                    <p className="text-xs text-gray-500 mt-1">{currentInfo.text}</p>
+                <div className="lg:hidden mb-8 p-4 bg-muted/30 rounded-xl border border-border">
+                    <h2 className="font-bold text-sm text-foreground">{currentInfo.title}</h2>
+                    <p className="text-xs text-muted-foreground mt-1">{currentInfo.text}</p>
                 </div>
 
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8 hidden lg:block">
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight mb-8 hidden lg:block">
                     {currentInfo.title}
                 </h1>
 
-                {/* Área de Erro (Renderiza se houver erro no submit final) */}
+                {/* Área de Erro */}
                 <div className="mb-6">
                    <FormError error={submitError} />
                 </div>
@@ -204,42 +201,42 @@ export default function OnboardingPage() {
                     {step === 5 && <StepAI data={formData} update={updateData} onBack={prevStep} onFinish={finishOnboarding} isLoading={isLoading} />}
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-gray-100 opacity-80 hover:opacity-100 transition-opacity">
+                <div className="mt-12 pt-8 border-t border-border opacity-80 hover:opacity-100 transition-opacity">
                     <SecureEnvironmentCard />
                 </div>
             </div>
         </div>
 
         <div className={cn("absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-500 flex flex-col items-center gap-1 z-20", showScrollArrow ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
-            <span className="text-[9px] font-bold text-gray-400 bg-white/90 px-3 py-1 rounded-full shadow-sm backdrop-blur border border-gray-100">
+            <span className="text-[9px] font-bold text-muted-foreground bg-background/90 px-3 py-1 rounded-full shadow-sm backdrop-blur border border-border">
                 Role para continuar
             </span>
-            <ChevronDown className="w-5 h-5 text-brand-purple animate-bounce" />
+            <ChevronDown className="w-5 h-5 text-primary animate-bounce" />
         </div>
       </div>
 
       {/* --- DIREITA: CONTEXTO (40%) --- */}
-      <div className="hidden lg:flex lg:w-[40%] bg-white flex-col justify-start pt-32 px-12 xl:px-20 relative overflow-hidden border-l border-gray-50">
-         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]"></div>
-         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-purple opacity-[0.02] blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="hidden lg:flex lg:w-[40%] bg-muted/10 flex-col justify-start pt-32 px-12 xl:px-20 relative overflow-hidden border-l border-border">
+         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] dark:invert"></div>
+         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/20 opacity-50 blur-[120px] rounded-full pointer-events-none"></div>
 
          <div className="relative z-10">
-            <div className="w-14 h-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center mb-8 shadow-sm">
-                 <span className="text-xl font-bold text-brand-purple">{step}</span>
+            <div className="w-14 h-14 bg-card border border-border rounded-2xl flex items-center justify-center mb-8 shadow-sm">
+                 <span className="text-xl font-bold text-primary">{step}</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight leading-snug mb-5 transition-all duration-300">
+            <h2 className="text-2xl font-extrabold text-foreground tracking-tight leading-snug mb-5 transition-all duration-300">
                 {currentInfo.title}
             </h2>
-            <p className="text-sm text-gray-500 leading-relaxed font-medium mb-8 transition-all duration-300">
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium mb-8 transition-all duration-300">
                 {currentInfo.text}
             </p>
-            <div className="flex items-start gap-3 p-4 bg-white border border-gray-100 rounded-xl shadow-[0_2px_10px_-5px_rgba(0,0,0,0.05)]">
-                <HelpCircle className="w-4 h-4 text-brand-purple shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-600 font-medium leading-relaxed">{currentInfo.highlight}</p>
+            <div className="flex items-start gap-3 p-4 bg-card border border-border rounded-xl shadow-sm">
+                <HelpCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">{currentInfo.highlight}</p>
             </div>
          </div>
          <div className="absolute bottom-10 left-12">
-            <p className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.2em]">Facillit Ecosystem</p>
+            <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-[0.2em]">Facillit Ecosystem</p>
          </div>
       </div>
     </div>
