@@ -1,3 +1,4 @@
+// Configurações do Gerador e Datasource
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,27 +9,44 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// --- MODELO DE PERFIL (CENTRAL) ---
 model Profile {
-  id        String   @id @default(uuid())
-  userId    String   @unique @map("user_id")
-  handle    String   @unique // Usei 'handle' para bater com seus tipos
-  name      String   @map("full_name")
-  bio       String?
-  avatarUrl String?  @map("avatar_url")
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  facillitId          String?  @unique @map("facillit_id") // Identificador Institucional FHB-XXXX-YXY-YYY
+  handle              String?  @unique // @username único no sistema
+  name                String   @map("full_name")
+  bio                 String?
+  avatarUrl           String?  @map("avatar_url")
   
-  // Relações
-  followers Follows[] @relation("following")
-  following Follows[] @relation("follower")
-  
-  privacy   ProfilePrivacy?
-  posts     Post[]
+  // Campos de Identidade e Contexto
+  pronouns            String?
+  gender              String?
+  address             Json?    @map("address") // Estrutura AddressData persistida como JSONB
+  accountType         String   @default("individual") @map("account_type")
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  // Metadados de I.A. e Preferências
+  aiLevel             Int      @default(0) @map("ai_level") // 0: moderate, 1: intermediate, 2: advanced
+  aiPreferences       Json     @default("{}") @map("ai_preferences") // data_sharing, personalization, etc.
+  deviceSettings      Json     @default("{}") @map("device_settings") // trusted, notifications
+
+  // Relações Sociais (Seguidores e Seguindo)
+  followers           Follows[] @relation("following")
+  following           Follows[] @relation("follower")
+  
+  // Outras Relações
+  privacy             ProfilePrivacy?
+  posts               Post[]
+
+  // Timestamps
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("profiles")
 }
 
+// --- PRIVACIDADE DO PERFIL ---
 model ProfilePrivacy {
   id            String  @id @default(uuid())
   profileId     String  @unique @map("profile_id")
@@ -43,6 +61,7 @@ model ProfilePrivacy {
   @@map("profile_privacy")
 }
 
+// --- SISTEMA DE SEGUIDORES (SELF-RELATION) ---
 model Follows {
   followerId  String  @map("follower_id")
   followingId String  @map("following_id")
@@ -56,6 +75,7 @@ model Follows {
   @@map("social_follows")
 }
 
+// --- POSTAGENS ---
 model Post {
   id        String   @id @default(uuid())
   profileId String   @map("profile_id")
@@ -68,4 +88,14 @@ model Post {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("social_posts")
+}
+
+// --- ORGANIZAÇÕES (ESTRUTURA B2B/B2G) ---
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // school | startup | enterprise
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("organizations")
 }

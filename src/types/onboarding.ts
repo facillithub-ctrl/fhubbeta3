@@ -25,6 +25,7 @@ export type AiLevel = "moderate" | "intermediate" | "advanced";
 export interface OnboardingData {
   handle: string;
   profileImage: string | null;
+  facillitId?: string;
   
   // Campos de Identidade
   pronouns: string;
