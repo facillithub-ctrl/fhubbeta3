@@ -135,7 +135,7 @@ export default function LoginPage() {
          
          <div className="relative z-10 text-center max-w-lg animate-in slide-in-from-right-8 duration-1000">
             <div className="w-32 h-32 bg-card border border-border rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 transform hover:scale-105 transition-transform duration-500 shadow-sm">
-                <Image src="/assets/images/accont.svg" alt="ID" width={80} height={80} className="object-contain" priority/>
+                <Image src="/assets/images/accoutgradient.svg" alt="ID" width={80} height={80} className="object-contain" priority/>
             </div>
             <h2 className="text-4xl font-extrabold text-foreground mb-6 tracking-tight leading-[1.15]">
                 Um único ID.<br/>
